@@ -1,1 +1,3 @@
-parsers/go/go
+bin/
+__pycache__/
+test/

@@ -13,7 +13,7 @@ func main() {
 	}
 
 	if len(os.Args) < 2 || os.Args[1] == `-h` || os.Args[1] == `--help` {
-		fmt.Println("Missing function name")
+		os.Stderr.WriteString("Missing function name\n")
 		fmt.Println("Usage: goparser func_name <pkg_path>")
 		os.Exit(1)
 	}
