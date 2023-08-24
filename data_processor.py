@@ -34,13 +34,12 @@ class FineTuneProcessor:
 
 		return tok_input
 
-	def decode(self, tok_outputs) -> list[str]:
-		outputs = []
-		for tok_output in tok_outputs:
-			output = self.tokenizer.decode(tok_output)
-			if len(output) > 0:
-				outputs.append(output)
-		return outputs
+	def decode(self, tok_output) -> list[str]:
+		output = self.tokenizer.decode(tok_output)
+		if len(output) > 0:
+			return [output]
+
+		return []
 
 
 # Processor for prompt-tuning (TODO)
