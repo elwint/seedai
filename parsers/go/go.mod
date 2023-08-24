@@ -1,4 +1,4 @@
-module git.ultraware.nl/elwin/smartfuzz/parsers/go
+module git.ultraware.nl/elwin/seedai/parsers/go
 
 go 1.20
 
