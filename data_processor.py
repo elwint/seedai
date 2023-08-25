@@ -24,8 +24,10 @@ class FineTuneProcessor:
 		self.split_token = tokenizer.encode(split_token)
 		self.max_encode_length = max_encode_length
 
-	def encode(self, source_code):
+	def encode(self, source_code: str):
 		max_length = self.max_encode_length - len(self.split_token)
+		if max_length <= 0:
+			raise Exception("Encode length too small")
 
 		tok_input = self.tokenizer.encode(source_code, truncation=True, max_length=max_length)
 		tok_input += self.split_token
@@ -35,8 +37,7 @@ class FineTuneProcessor:
 
 		return tok_input
 
-	def decode(self, tok_output) -> list[str]:
-		output = self.tokenizer.decode(tok_output)
+	def extract(self, output: str) -> list[str]:
 		if len(output) > 0:
 			return [output]
 
@@ -51,9 +52,9 @@ class PromptTuneProcessor:
 		self.suffix = suffix
 		self.max_encode_length = max_encode_length
 
-	def encode(self, source_code):
+	def encode(self, source_code: str):
 		raise Exception("not implemented")
 
-	def decode(self, output) -> list[str]:
+	def extract(self, output: str) -> list[str]:
 		raise Exception("not implemented")
 		return []
