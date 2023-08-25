@@ -1,11 +1,26 @@
 #!/bin/python3
 from args import parse_args, TYPE_SEQ2SEQ, TYPE_CAUSAL
 import data_processor as dp
+from generate import generate
 
 import os
 import hashlib
 
-from transformers import AutoTokenizer
+from transformers import  AutoConfig, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+import torch
+
+def initialize_model(args):
+	config = AutoConfig.from_pretrained(args.model)
+	torch_dtype = None
+	if config.torch_dtype == torch.float32:
+		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for float32 models (requires CUDA)
+
+	if args.type == TYPE_CAUSAL:
+		model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch_dtype) # TODO: device_map="auto" if needed?
+	if args.type == TYPE_SEQ2SEQ:
+		model = AutoModelForSeq2SeqLM.from_pretrained(args.model, torch_dtype=torch_dtype)
+
+	return model
 
 def initialize_processor(args):
 	tokenizer = AutoTokenizer.from_pretrained(args.model)
@@ -17,6 +32,7 @@ def initialize_processor(args):
 
 	max_encode_length = tokenizer.model_max_length
 
+	# TODO: Get this info from model?
 	if args.type == TYPE_CAUSAL:
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
 	if args.type == TYPE_SEQ2SEQ:
@@ -37,6 +53,7 @@ def main():
 
 	print("Loading model ...")
 
+	model = initialize_model(args)
 	processor = initialize_processor(args)
 
 	print("	Model max length:", processor.tokenizer.model_max_length)
@@ -50,15 +67,12 @@ def main():
 	print("Generating ...")
 
 	total = 0
-	for tok_output in generate(tok_input):
-		outputs = processor.decode(tok_outputs)
-		save_seeds(outputs)
+	for tok_output in generate(model, tok_input, args.count):
+		outputs = processor.decode(tok_output)
+		save_seeds(args.corpus, outputs)
 
 		total += len(outputs)
-		print("Generated ", total, " initial seed files.")
-
-		if len(outputs) <= args.count:
-			break
+		print("Generated", total, "initial seed files.")
 
 def save_seeds(corpus_dir: str, outputs: list[str]):
 	"""

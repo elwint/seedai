@@ -1,4 +1,5 @@
 import subprocess
+import torch
 
 def run_parser(parser: str, func_name: str) -> str:
 	result = subprocess.run([parser, func_name],
