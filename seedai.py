@@ -9,6 +9,7 @@ import init
 
 generate_args = {
 	'temperature': 0.2,
+	'top_p': 1.0,
 	'diversity_penalty': 2.0,
 	'repetition_penalty': 2.0,
 }

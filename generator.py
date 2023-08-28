@@ -24,6 +24,7 @@ class OpenAIGenerator:
 		if self.legacy:
 			input_ids = combine_inputs(inputs)
 			args["prompt"] = self.tokenizer.decode(input_ids) # Decoding the input IDs using the tokenizer
+			args["max_tokens"] = self.tokenizer.model_max_length - len(input_ids)
 		else:
 			args["messages"] = [{
 				"role": "user",
