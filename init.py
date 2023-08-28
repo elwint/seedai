@@ -39,12 +39,14 @@ def tokenizer(args):
 
 	return tokenizer, isOpenAI
 
-def processor(args, tokenizer):
+def processor(args, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
 	if args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
 		args.split_token = "" # no split token for seq2seq models
+	if isOpenAI and not args.legacy:
+		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
 	if args.prompt_tuning:
 		processor = PromptTuneProcessor(tokenizer, max_encode_length)
@@ -54,8 +56,9 @@ def processor(args, tokenizer):
 	return processor
 
 class OpenAITokenizer: # Wrapper class to make OpenAI tokenizer compatible
-	def __init__(self, name):
-		self.enc = tiktoken.encoding_for_model(name)
+	def __init__(self, name: str):
+		prefix = name.split(':', 1)[0]
+		self.enc = tiktoken.encoding_for_model(prefix)
 
 	def encode(self, text, truncation=False, max_length=-1):
 		if not truncation:

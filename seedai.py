@@ -29,7 +29,7 @@ def main():
 	print("Loading model ...")
 	model = init.model(args, isOpenAI)
 
-	processor = init.processor(args, tokenizer)
+	processor = init.processor(args, tokenizer, isOpenAI)
 
 	print("	Model max length:", tokenizer.model_max_length)
 	print("	Max encode length:", processor.max_encode_length)
@@ -37,18 +37,18 @@ def main():
 	print("Parsing code ...")
 
 	source_code = run_parser(args.parser, args.func)
-	tok_input = processor.encode(source_code)
+	inputs = processor.encode(source_code)
 
 	print("Generating ...")
 
 	if isOpenAI:
-		generator = OpenAIGenerator(model, tokenizer, **generate_args)
+		generator = OpenAIGenerator(model, tokenizer, args.legacy, **generate_args)
 	else:
 		generator = HFGenerator(model, tokenizer, **generate_args)
 
 	total = 0
 	new_seeds = 0
-	for output in generator.generate(tok_input):
+	for output in generator.generate(inputs):
 		seeds = processor.extract(output)
 		new_seeds += save_seeds(args.corpus, seeds)
 
