@@ -2,21 +2,29 @@
 import os
 import hashlib
 
-from args import parse_args
+from args import parse_args, TYPE_SEQ2SEQ
 from data_processor import run_parser
 from generator import OpenAIGenerator, HFGenerator
 import init
 
 generate_args = {
-	'temperature': 0.2,
-	'top_p': 1.0,
-	'diversity_penalty': 2.0,
-	'repetition_penalty': 2.0,
+	'do_sample': True, # Ignored by OpenAI
+	'temperature': 0.2, # Default = 1.0
+	'top_p': 1.0, # Default = 1.0
+	'diversity_penalty': 0.0, # Ignore by OpenAI
+	'repetition_penalty': 1.0, # frequency_penalty for OpenAI
+	'presence_penalty': 1.0, # Ignored by HuggingFace
+	'num_beams': 1, # Ignored by OpenAI, default = 1
+	'num_beams_groups': 1, # Ignored by OpenAI, default = 1
 }
 
 def main():
 	args = parse_args()
 	generate_args['count'] = args.count
+	if generate_args['num_beams'] == '<count>':
+		generate_args['num_beams'] = args.count
+	if generate_args['num_beams_groups'] == '<count>':
+		generate_args['num_beams_groups'] = args.count
 
 	# Create corpus dir if not exists
 	os.makedirs(args.corpus, exist_ok=True)
@@ -45,7 +53,7 @@ def main():
 	if isOpenAI:
 		generator = OpenAIGenerator(model, tokenizer, args.legacy, **generate_args)
 	else:
-		generator = HFGenerator(model, tokenizer, **generate_args)
+		generator = HFGenerator(model, tokenizer, args.type == TYPE_SEQ2SEQ, **generate_args)
 
 	total = 0
 	new_seeds = 0

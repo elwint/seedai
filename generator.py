@@ -2,6 +2,7 @@ import requests
 import json
 import os
 import openai
+import torch
 
 class OpenAIGenerator:
 	def __init__(self, model, tokenizer, legacy, **kwargs):
@@ -15,10 +16,11 @@ class OpenAIGenerator:
 		args = {
 			"model": self.model,
 			"temperature": self.temperature,
+			"top_p": self.top_p,
 			"stop": " END",
 			"n": self.count,
-			"presence_penalty": self.diversity_penalty,  # map the given parameters to the actual request parameters
 			"frequency_penalty": self.repetition_penalty,
+			"presence_penalty": self.presence_penalty,
 		}
 
 		if self.legacy:
@@ -48,27 +50,31 @@ class OpenAIGenerator:
 				yield choice.message.content
 
 class HFGenerator:
-	def __init__(self, model, tokenizer, **kwargs):
+	def __init__(self, model, tokenizer, seq2seq, **kwargs):
 		self.model = model
 		self.tokenizer = tokenizer
+		self.seq2seq = seq2seq
 		self.__dict__.update(kwargs)
 
 	def generate(self, inputs):
 		input_ids = combine_inputs(inputs)
-		max_new_tokens = self.tokenizer.model_max_length - len(input_ids)
+		max_new_tokens = self.tokenizer.model_max_length
+		if not self.seq2seq:
+			max_new_tokens -= len(input_ids)
 
 		for output in self.model.generate(
 			input_ids=torch.as_tensor([input_ids]),
 			temperature=self.temperature,
+			top_p=self.top_p,
 			min_new_tokens=0,
 			max_new_tokens=max_new_tokens,
-			early_stopping=True,
+			do_sample=self.do_sample,
 			num_return_sequences=self.count,
-			num_beams=self.count,
-			num_beam_groups=self.count,
+			num_beams=self.num_beams,
+			num_beam_groups=self.num_beams_groups,
 			diversity_penalty=self.diversity_penalty,
 			repetition_penalty=self.repetition_penalty,
-			pad_token_id=self.tokenizer.eos_token_id # TODO: Remove matching prefix
+			pad_token_id=self.tokenizer.eos_token_id
 		):
 			yield self.tokenizer.decode(output)
 
