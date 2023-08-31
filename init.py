@@ -44,7 +44,7 @@ def processor(args, tokenizer, isOpenAI):
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
 	if args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
-		args.split_token = "" # no split token for seq2seq models
+		args.split_token = "" # no split token for seq2seq models (TODO: should not be handled here)
 	if isOpenAI and not args.legacy:
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
@@ -57,8 +57,17 @@ def processor(args, tokenizer, isOpenAI):
 
 class OpenAITokenizer: # Wrapper class to make OpenAI tokenizer compatible
 	def __init__(self, name: str):
-		prefix = name.split(':', 1)[0]
-		self.enc = tiktoken.encoding_for_model(prefix)
+		split = name.split(':', 1)
+		self.enc = tiktoken.encoding_for_model(split[0])
+
+		self.eos_token = "<|endoftext|>"
+		if len(split) > 1:
+			self.eos_token = " END" # Ft-models use " END" as eos_token (assuming OpenAI's default fine-tune format)
+		
+		eos_token_id = self.enc.encode(self.eos_token, allowed_special="all")
+		if len(eos_token_id) != 1:
+			raise Exception("too many tokens for eos_token_id")
+		self.eos_token_id = eos_token_id[0]
 
 	def encode(self, text, truncation=False, max_length=-1):
 		if not truncation:

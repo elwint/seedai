@@ -31,6 +31,7 @@ def main():
 
 	print("Loading tokenizer ...")
 	tokenizer, isOpenAI = init.tokenizer(args)
+	print("	EOS token:", tokenizer.eos_token)
 
 	if isOpenAI and 'OPENAI_API_KEY' not in os.environ:
 		raise Exception("Please set OPENAI_API_KEY env variable")
@@ -50,7 +51,7 @@ def main():
 
 	source_code = run_parser(args.parser, args.func)
 	inputs, inputs_len = processor.encode(source_code)
-	print("	Code tokens:", inputs_len)
+	print("	Encoded tokens:", inputs_len)
 
 	decode_len = tokenizer.model_max_length-inputs_len
 	if args.type == TYPE_SEQ2SEQ:
@@ -60,10 +61,11 @@ def main():
 
 	print("Generating ...")
 
+	stop_token = processor.stop_token()
 	if isOpenAI:
-		generator = OpenAIGenerator(model, tokenizer, args.legacy, **generate_args)
+		generator = OpenAIGenerator(model, tokenizer, stop_token, args.legacy, **generate_args)
 	else:
-		generator = HFGenerator(model, tokenizer, args.type == TYPE_SEQ2SEQ, **generate_args)
+		generator = HFGenerator(model, tokenizer, stop_token, args.type == TYPE_SEQ2SEQ, **generate_args)
 
 	total = 0
 	new_seeds = 0
@@ -72,8 +74,10 @@ def main():
 		new_seeds += save_seeds(args.corpus, seeds)
 
 		total += len(seeds)
-		print(f"	Generated {total} initial seed files.")
-		print(f"	Total new unique seeds saved: {new_seeds}")
+	
+	print()
+	print(f"	Generated {total} initial seed files.")
+	print(f"	Total new unique seeds saved: {new_seeds}")
 
 def save_seeds(corpus_dir: str, seeds: list[str]) -> int:
 	"""

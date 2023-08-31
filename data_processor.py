@@ -21,6 +21,7 @@ class FineTuneProcessor:
 	def __init__(self, tokenizer, split_token: str, max_encode_length: int):
 		self.tokenizer = tokenizer
 		self.split_token = tokenizer.encode(split_token)
+		# print(tokenizer.encode(split_token)) # TODO: Fix for seq2seq
 		self.max_encode_length = max_encode_length
 
 	def encode(self, source_code: str):
@@ -35,6 +36,10 @@ class FineTuneProcessor:
 			print("Warning: input length >= max encode length, prompt truncated")
 
 		return {'user': tok_input}, len(tok_input)
+
+	def stop_token(self):
+		return self.tokenizer.eos_token
+		# return '\n' # For testing
 
 	def extract(self, output: str) -> list[str]:
 		if len(output) > 0:
@@ -52,6 +57,9 @@ class PromptTuneProcessor:
 		self.max_encode_length = max_encode_length
 
 	def encode(self, source_code: str):
+		raise Exception("not implemented")
+
+	def stop_token(self):
 		raise Exception("not implemented")
 
 	def extract(self, output: str) -> list[str]:
