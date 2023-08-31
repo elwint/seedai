@@ -26,7 +26,7 @@ class OpenAIGenerator:
 		if self.legacy:
 			input_ids = combine_inputs(inputs)
 			args["prompt"] = self.tokenizer.decode(input_ids) # Decoding the input IDs using the tokenizer
-			args["max_tokens"] = self.tokenizer.model_max_length - len(input_ids)
+			args["max_tokens"] = self.max_new_tokens # Default is not infinity for legacy
 		else:
 			args["messages"] = [{
 				"role": "user",
@@ -58,16 +58,13 @@ class HFGenerator:
 
 	def generate(self, inputs):
 		input_ids = combine_inputs(inputs)
-		max_new_tokens = self.tokenizer.model_max_length
-		if not self.seq2seq:
-			max_new_tokens -= len(input_ids)
 
 		for output in self.model.generate(
 			input_ids=torch.as_tensor([input_ids]),
 			temperature=self.temperature,
 			top_p=self.top_p,
 			min_new_tokens=0,
-			max_new_tokens=max_new_tokens,
+			max_new_tokens=self.max_new_tokens,
 			do_sample=self.do_sample,
 			num_return_sequences=self.count,
 			num_beams=self.num_beams,
@@ -76,7 +73,9 @@ class HFGenerator:
 			repetition_penalty=self.repetition_penalty,
 			pad_token_id=self.tokenizer.eos_token_id
 		):
-			yield self.tokenizer.decode(output)
+			if not self.seq2seq:
+				output = output[len(input_ids):] # Trim input form output
+			yield self.tokenizer.decode(output, skip_special_tokens=True)
 
 def combine_inputs(inputs):
 	input_ids = inputs['user']

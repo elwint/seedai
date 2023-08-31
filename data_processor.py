@@ -34,7 +34,7 @@ class FineTuneProcessor:
 		if len(tok_input) == self.max_encode_length:
 			print("Warning: input length >= max encode length, prompt truncated")
 
-		return {'user': tok_input}
+		return {'user': tok_input}, len(tok_input)
 
 	def extract(self, output: str) -> list[str]:
 		if len(output) > 0:

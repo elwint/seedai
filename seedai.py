@@ -40,13 +40,23 @@ def main():
 
 	processor = init.processor(args, tokenizer, isOpenAI)
 
-	print("	Model max length:", tokenizer.model_max_length)
-	print("	Max encode length:", processor.max_encode_length)
+	total_max_length = tokenizer.model_max_length
+	if args.type == TYPE_SEQ2SEQ:
+		total_max_length = 2*tokenizer.model_max_length
+	print("	Model total max tokens:", total_max_length)
+	print("	Max encode tokens:", processor.max_encode_length)
 
 	print("Parsing code ...")
 
 	source_code = run_parser(args.parser, args.func)
-	inputs = processor.encode(source_code)
+	inputs, inputs_len = processor.encode(source_code)
+	print("	Code tokens:", inputs_len)
+
+	decode_len = tokenizer.model_max_length-inputs_len
+	if args.type == TYPE_SEQ2SEQ:
+		decode_len = tokenizer.model_max_length
+	generate_args['max_new_tokens'] = decode_len
+	print("	Max decode tokens:", decode_len)
 
 	print("Generating ...")
 
@@ -62,8 +72,8 @@ def main():
 		new_seeds += save_seeds(args.corpus, seeds)
 
 		total += len(seeds)
-		print(f"Generated {total} initial seed files.")
-		print(f"Total new unique seeds saved: {new_seeds}")
+		print(f"	Generated {total} initial seed files.")
+		print(f"	Total new unique seeds saved: {new_seeds}")
 
 def save_seeds(corpus_dir: str, seeds: list[str]) -> int:
 	"""
