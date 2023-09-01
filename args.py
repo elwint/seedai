@@ -12,7 +12,7 @@ def parse_args():
 	default_count = 100
 	default_func = "Fuzz"
 	default_corpus = "corpus"
-	default_split_token = "\n\n###\n\n"
+	default_split = "\n\n###\n\n"
 	default_verbose = False
 
 	parser = argparse.ArgumentParser(description="TODO.")
@@ -44,9 +44,9 @@ def parse_args():
 	parser.add_argument("--corpus",  "-d", default=default_corpus,
 					 help=f"corpus directory. Default is '{default_corpus}'.")
 
-	parser.add_argument("--split-token", "-s", default=default_split_token,
-					 help="split token for causal model inference without prompt tuning. Default is '{}'.".
-						format(default_split_token.replace('\n', '\\n')))
+	parser.add_argument("--split", "-s", default=default_split,
+					 help="split string for causal model inference without prompt tuning. Default is '{}'.".
+						format(default_split.replace('\n', '\\n')))
 
 	parser.add_argument("--verbose", "-v", action="store_true", default=default_verbose,
 					 help=f"show verbose output. Default is {default_verbose}.")

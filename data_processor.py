@@ -18,19 +18,18 @@ def run_parser(parser: str, func_name: str) -> str:
 
 # Processor for fine-tuned models
 class FineTuneProcessor:
-	def __init__(self, tokenizer, split_token: str, max_encode_length: int):
+	def __init__(self, tokenizer, split: str, max_encode_length: int):
 		self.tokenizer = tokenizer
-		self.split_token = tokenizer.encode(split_token)
-		# print(tokenizer.encode(split_token)) # TODO: Fix for seq2seq
+		self.split_tokens = tokenizer.encode(split, add_special_tokens=False)
 		self.max_encode_length = max_encode_length
 
 	def encode(self, source_code: str):
-		max_length = self.max_encode_length - len(self.split_token)
+		max_length = self.max_encode_length - len(self.split_tokens)
 		if max_length <= 0:
 			raise Exception("Encode length too small")
 
 		tok_input = self.tokenizer.encode(source_code, truncation=True, max_length=max_length)
-		tok_input += self.split_token
+		tok_input += self.split_tokens
 
 		if len(tok_input) == self.max_encode_length:
 			print("Warning: input length >= max encode length, prompt truncated")

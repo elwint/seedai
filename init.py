@@ -42,16 +42,17 @@ def tokenizer(args):
 def processor(args, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
+		split = args.split
 	if args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
-		args.split_token = "" # no split token for seq2seq models (TODO: should not be handled here)
+		split = ''
 	if isOpenAI and not args.legacy:
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
 	if args.prompt_tuning:
 		processor = PromptTuneProcessor(tokenizer, max_encode_length)
 	else:
-		processor = FineTuneProcessor(tokenizer, args.split_token, max_encode_length)
+		processor = FineTuneProcessor(tokenizer, split, max_encode_length)
 
 	return processor
 
@@ -69,7 +70,7 @@ class OpenAITokenizer: # Wrapper class to make OpenAI tokenizer compatible
 			raise Exception("too many tokens for eos_token_id")
 		self.eos_token_id = eos_token_id[0]
 
-	def encode(self, text, truncation=False, max_length=-1):
+	def encode(self, text, truncation=False, max_length=-1, add_special_tokens=False):
 		if not truncation:
 			return self.enc.encode(text)
 
