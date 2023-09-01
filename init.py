@@ -42,17 +42,17 @@ def tokenizer(args):
 def processor(args, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
-		split = args.split
+		seq2seq = False
 	if args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
-		split = ''
+		seq2seq = True
 	if isOpenAI and not args.legacy:
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
 	if args.prompt_tuning:
-		processor = PromptTuneProcessor(tokenizer, max_encode_length)
+		processor = PromptTuneProcessor(tokenizer, seq2seq, max_encode_length)
 	else:
-		processor = FineTuneProcessor(tokenizer, split, max_encode_length)
+		processor = FineTuneProcessor(tokenizer, seq2seq, args.split, max_encode_length)
 
 	return processor
 

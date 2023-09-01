@@ -18,21 +18,21 @@ def run_parser(parser: str, func_name: str) -> str:
 
 # Processor for fine-tuned models
 class FineTuneProcessor:
-	def __init__(self, tokenizer, split: str, max_encode_length: int):
+	def __init__(self, tokenizer, seq2seq: bool, split: str, max_encode_length: int):
 		self.tokenizer = tokenizer
+		self.seq2seq = seq2seq
 		self.split_tokens = tokenizer.encode(split, add_special_tokens=False)
 		self.max_encode_length = max_encode_length
 
 	def encode(self, source_code: str):
-		max_length = self.max_encode_length - len(self.split_tokens)
-		if max_length <= 0:
-			raise Exception("Encode length too small")
+		suffix_tokens = self.split_tokens
+		if self.seq2seq:
+			suffix_tokens = [] # Do not add split tokens for seq2seq models
 
-		tok_input = self.tokenizer.encode(source_code, truncation=True, max_length=max_length)
-		tok_input += self.split_tokens
-
-		if len(tok_input) == self.max_encode_length:
-			print("Warning: input length >= max encode length, prompt truncated")
+		tok_input = encode(
+			self.tokenizer, self.seq2seq, self.max_encode_length, source_code,
+			suffix_tokens=suffix_tokens,
+		)
 
 		return {'user': tok_input}, len(tok_input)
 
@@ -64,3 +64,27 @@ class PromptTuneProcessor:
 	def extract(self, output: str) -> list[str]:
 		raise Exception("not implemented")
 		return []
+
+def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
+	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens)
+	if seq2seq:
+		max_length -= 2
+	if max_length <= 0:
+		raise Exception("Encode length too small")
+
+	encoded = tokenizer.encode(text, truncation=True, max_length=max_length, add_special_tokens=False)
+	encoded = prefix_tokens + encoded + suffix_tokens
+	if seq2seq:
+		encoded = [tokenizer.bos_token_id] + encoded + [tokenizer.eos_token_id]
+
+	if len(encoded) > max_encode_length:
+		raise Exception("Encoded length too large")
+
+	if len(encoded) == max_encode_length:
+		print("	Warning: input length >= max encode length, prompt truncated")
+
+	# print("----------------------------------") # For debugging
+	# print(tokenizer.decode(encoded))
+	# print("----------------------------------")
+
+	return encoded
