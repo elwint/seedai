@@ -1,30 +1,17 @@
 #!/bin/python3
 import os
 import hashlib
+import json
 
 from args import parse_args, TYPE_SEQ2SEQ
 from data_processor import run_parser
 from generator import OpenAIGenerator, HFGenerator
 import init
 
-generate_args = {
-	'do_sample': True, # Ignored by OpenAI
-	'temperature': 0.2, # Default = 1.0
-	'top_p': 1.0, # Default = 1.0
-	'diversity_penalty': 0.0, # Ignore by OpenAI
-	'repetition_penalty': 1.0, # frequency_penalty for OpenAI
-	'presence_penalty': 1.0, # Ignored by HuggingFace
-	'num_beams': 1, # Ignored by OpenAI, default = 1
-	'num_beams_groups': 1, # Ignored by OpenAI, default = 1
-}
-
 def main():
-	args = parse_args()
-	generate_args['count'] = args.count
-	if generate_args['num_beams'] == '<count>':
-		generate_args['num_beams'] = args.count
-	if generate_args['num_beams_groups'] == '<count>':
-		generate_args['num_beams_groups'] = args.count
+	print("Loading config ...")
+	args, generate_args = parse_args()
+	print(json.dumps(generate_args, indent=4))
 
 	# Create corpus dir if not exists
 	os.makedirs(args.corpus, exist_ok=True)

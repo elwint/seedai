@@ -1,0 +1,10 @@
+{
+	"do_sample": true,
+	"temperature": 1.0,
+	"top_p": 0.75,
+	"diversity_penalty": 0.0,
+	"repetition_penalty": 1.0,
+	"presence_penalty": 1.0,
+	"num_beams": 1,
+	"num_beams_groups": 1
+}
