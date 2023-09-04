@@ -3,7 +3,7 @@ import os
 import hashlib
 import json
 
-from args import parse_args, TYPE_SEQ2SEQ
+from args import parse_args, TYPE_SEQ2SEQ, printd
 from data_processor import run_parser
 from generator import OpenAIGenerator, HFGenerator
 import init
@@ -12,6 +12,8 @@ def main():
 	print("Loading config ...")
 	args, generate_args = parse_args()
 	print(json.dumps(generate_args, indent=4))
+	if args.prompt_tuning:
+		print(json.dumps(args.prompt_tuning, indent=4))
 
 	# Create corpus dir if not exists
 	os.makedirs(args.corpus, exist_ok=True)
@@ -57,7 +59,17 @@ def main():
 	total = 0
 	new_seeds = 0
 	for output in generator.generate(input_ids, system_ids):
+		printd("--------------OUTPUT--------------")  # For debugging
+		printd(output)
+		printd("----------------------------------")
+
 		seeds = processor.extract(output)
+
+		printd("--------EXTRACTED SEEDS-----------")
+		for seed in seeds:
+			printd(seed)
+			printd("----------------------------------")
+
 		new_seeds += save_seeds(args.corpus, seeds)
 
 		total += len(seeds)

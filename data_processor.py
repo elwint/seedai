@@ -1,5 +1,6 @@
 import subprocess
 import ast
+from args import printd
 
 def run_parser(parser: str, func_name: str) -> str:
 	result = subprocess.run([parser, func_name],
@@ -47,16 +48,20 @@ class FineTuneProcessor:
 
 		return []
 
-
 # Processor for prompt-tuning
 class PromptTuneProcessor:
-	def __init__(self, tokenizer, seq2seq: bool, max_encode_length: int, count: int):
+	def __init__(
+			self, tokenizer, seq2seq: bool, max_encode_length: int, count: int,
+			prefix: str, suffix: str, stop: str, find_start: bool,
+		):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length
+		self.stop = stop
+		self.find_start = find_start
 
-		prefix = "You are a code completer.\n"
-		suffix = "\n```\nfunc TestBug() {\n\tinput := \""
+		prefix = prefix.replace("<count>", str(count))
+		suffix = suffix.replace("<count>", str(count))
 
 		self.prefix_tokens = tokenizer.encode(prefix, add_special_tokens=False)
 		self.suffix_tokens = tokenizer.encode(suffix, add_special_tokens=False)
@@ -71,21 +76,33 @@ class PromptTuneProcessor:
 		return input_ids, self.prefix_tokens
 
 	def stop_token(self):
-		return "\n"
+		return self.stop
 
 	def extract(self, output: str) -> list[str]:
-		output = extract_until_double_quotes(output)
+		if len(output) == 0:
+			return []
 
-		# The output contains a string in code, which is escaped
-		try:
+		seeds = []
+		for line in output.splitlines():
+			values = extract_values(line, self.find_start)
+			if len(values) == 0:
+				if self.find_start:
+					continue
+				else:
+					values = [line]
+
+			for seed in values:
+				# The output contains a string in source code, try to un-escape it
+				seed = parse_escaped(seed)
+
+				if len(seed) > 0:
+					seeds.append(seed)
+
+		if len(seeds) == 0: # Make sure to always return something when extraction failed
 			output = parse_escaped(output)
-		except SyntaxError:
-			pass
-
-		if len(output) > 0:
 			return [output]
 
-		return []
+		return seeds
 
 def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
 	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens)
@@ -105,19 +122,53 @@ def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_t
 	if len(encoded) == max_encode_length:
 		print("	Warning: input length >= max encode length, prompt truncated")
 
-	# print("----------------------------------") # For debugging
-	# print(tokenizer.decode(encoded))
-	# print("----------------------------------")
+	printd("--------------INPUT---------------") # For debugging
+	printd(tokenizer.decode(encoded))
+	printd("----------------------------------")
 
 	return encoded
 
-def extract_until_double_quotes(s):
-	# iterate from the start to the end
-	for i in range(len(s)):
-		if s[i] == '"' and (i == 0 or s[i-1] != '\\'):
-			return s[:i]
-	return s
+def extract_values(line: str, find_start: bool) -> list[str]:
+	values = []
 
-def parse_escaped(s):
-	str_val = '"'+s+'"'
-	return ast.literal_eval(str_val)
+	value, i = extract_value(line, find_start)
+	if value != "":
+		values.append(value)
+
+	if not find_start or i == -1:
+		return values
+
+	# Handle one-line cases like []string{"value1", "value2"}
+	while True:
+		line = line[i+1:]
+		value, i = extract_value(line, find_start)
+		if value != "":
+			values.append(value)
+		if i == -1:
+			break
+
+	return values
+
+def extract_value(line: str, find_start: bool) -> str:
+	start = 0
+	if find_start:
+		start = line.find('"')
+		if start == -1:
+			return "", -1
+		start += 1
+
+	# iterate from the start to the end
+	for i in range(start, len(line)):
+		if line[i] == '"' and (i == 0 or line[i-1] != '\\'):
+			return line[start:i], i
+
+	return "", -1
+
+def parse_escaped(value):
+	str_val = '"'+value+'"'
+	try:
+		value = ast.literal_eval(str_val)
+	except SyntaxError: # Just return the original value on failure
+		pass
+
+	return value

@@ -5,6 +5,8 @@ import openai
 import torch
 from transformers import StoppingCriteria, StoppingCriteriaList
 
+from args import printd
+
 class OpenAIGenerator:
 	def __init__(self, model, tokenizer, stop_token, legacy, **kwargs):
 		openai.api_key = os.environ.get('OPENAI_API_KEY')
@@ -46,9 +48,9 @@ class OpenAIGenerator:
 
 			args["messages"] = messages
 
-			# print("----------------------------------") # For debugging
-			# print(json.dumps(messages, indent=4))
-			# print("----------------------------------")
+			printd("-----------OPENAI CALL------------") # For debugging
+			printd(json.dumps(messages, indent=4))
+			printd("----------------------------------")
 
 		if self.legacy:
 			completion = openai.Completion.create(**args)

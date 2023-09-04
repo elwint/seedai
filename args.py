@@ -1,6 +1,8 @@
 import argparse
 import json
 
+debug=False
+
 TYPE_SEQ2SEQ = "seq2seq"
 TYPE_CAUSAL  = "causal"
 
@@ -8,13 +10,13 @@ def parse_args():
 	default_parser = "goparser"
 	default_model = "./ft-models/starcoder"
 	default_type = TYPE_CAUSAL
-	default_prompt_tuning = False
+	default_prompt_tuning = "no prompt tuning"
 	default_legacy = False
 	default_count = 10
 	default_func = "Fuzz"
 	default_corpus = "corpus"
 	default_split = "\n\n###\n\n"
-	default_verbose = False
+	default_debug = False
 
 	parser = argparse.ArgumentParser(description="TODO.")
 
@@ -33,8 +35,8 @@ def parse_args():
 	parser.add_argument("--length", "-l", type=int, default=-1,
 					 help="model max length. Default is tokenizer.model_max_length.")
 
-	parser.add_argument("--prompt-tuning", "-pt", action="store_true", default=default_prompt_tuning,
-					 help=f"enable prompt tuning. Default is {default_prompt_tuning}.")
+	parser.add_argument("--prompt-tuning", "-pt", default=default_prompt_tuning,
+					 help=f"enable prompt tuning config json file. Default is {default_prompt_tuning}.")
 
 	parser.add_argument("--legacy", "-L", action="store_true", default=default_legacy,
 					 help=f"enable legacy support (OpenAI). Default is {default_legacy}.")
@@ -55,8 +57,8 @@ def parse_args():
 					 help="split string for causal model inference without prompt tuning. Default is '{}'.".
 						format(default_split.replace('\n', '\\n')))
 
-	parser.add_argument("--verbose", "-v", action="store_true", default=default_verbose,
-					 help=f"show verbose output. Default is {default_verbose}.")
+	parser.add_argument("--debug", "--verbose", "-v", action="store_true", default=default_debug,
+					 help=f"print debug output to debug.out. Default is {default_debug}.")
 
 	args = parser.parse_args()
 	if args.type not in [TYPE_CAUSAL, TYPE_SEQ2SEQ]:
@@ -64,6 +66,12 @@ def parse_args():
 
 	with open(args.config) as json_file:
 		generate_args = json.load(json_file)
+
+	if args.prompt_tuning != default_prompt_tuning:
+		with open(args.prompt_tuning) as json_file:
+			args.prompt_tuning = json.load(json_file)
+	else:
+		args.prompt_tuning = False
 
 	if args.execs == -1:
 		args.execs = args.count
@@ -74,4 +82,12 @@ def parse_args():
 	if generate_args['num_beams_groups'] == '<execs>':
 		generate_args['num_beams_groups'] = args.execs
 
+	if args.debug:
+		global debug
+		debug = open('debug.out', 'w')
+
 	return args, generate_args
+
+def printd(v: str):
+	if debug:
+		print(v, file=debug)

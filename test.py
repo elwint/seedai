@@ -5,7 +5,7 @@ import hashlib
 import tempfile
 
 from seedai import save_seeds
-from data_processor import extract_until_double_quotes
+from data_processor import extract_values
 
 class TestSaveSeeds(unittest.TestCase):
 
@@ -41,23 +41,64 @@ class TestSaveSeeds(unittest.TestCase):
 
 
 class TestDataProcessor(unittest.TestCase):
-	def test_extract_until_double_quotes(self):
+	def test_extract_values(self):
 		# Ignore escaped quotes \"
 		test_string = 'a\\"bc\\"def" // asdasdas'
-		expected = 'a\\"bc\\"def'
-		result = extract_until_double_quotes(test_string)
+		expected = ['a\\"bc\\"def']
+		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
 
 		# End at first "
 		test_string = 'a"bc\\"def" // asdasdas'
-		expected = 'a'
-		result = extract_until_double_quotes(test_string)
+		expected = ['a']
+		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
 
-		# If " not found, return whole string
+		# If " not found, return nothing
 		test_string = 'a\\"bc\\"def\\" // asdasdas'
-		expected = 'a\\"bc\\"def\\" // asdasdas'
-		result = extract_until_double_quotes(test_string)
+		expected = []
+		result = extract_values(test_string, False)
+		self.assertEqual(expected, result)
+
+		test_string = 'abcdef // asdasdas'
+		expected = []
+		result = extract_values(test_string, False)
+		self.assertEqual(expected, result)
+
+	def test_extract_values_find_start(self):
+		# Ignore escaped quotes \"
+		test_string = '"a\\"bc\\"def" // asdasdas'
+		expected = ['a\\"bc\\"def']
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# Multiple values, escaped quote not ignored when finding next begin quote
+		test_string = 'test. "a"bc\\"def" // asdasdas'
+		expected = ['a', 'def']
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# If " not found, return nothing
+		test_string = 'a\\"bc\\"def\\" // asdasdas'
+		expected = []
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		test_string = 'abcdef // asdasdas'
+		expected = []
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# Multiple values
+		test_string = '[]string{"a\\"bc\\"def", "value2", "3"} // asdasdas'
+		expected = ['a\\"bc\\"def', "value2", "3"]
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# Multiple empty values
+		test_string = '[]string{"", "", "a"'
+		expected = ['a']
+		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 
 if __name__ == '__main__':
