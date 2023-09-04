@@ -6,7 +6,7 @@ Known limitations:
 
 - [Go source code parser](https://git.ultraware.nl/elwin/scparser)
 
-## Config example
+## Generation config example
 
 ```json
 {
@@ -18,5 +18,15 @@ Known limitations:
 	"presence_penalty": 2.0,        # Ignored by HuggingFace, requires group beam search)
 	"num_beams": "<execs>",         # Ignored by OpenAI, default = 1 (no beam search)
 	"num_beams_groups": "<execs>"   # Ignored by OpenAI, default = 1 (no group beam search)
+}
+```
+
+## Prompt-tuning config example
+```json
+{
+	"prefix": "You are a code completer.\n",
+	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{",
+	"stop": "}",
+	"find_start": true		# Find start of string, may extract multiple values when true
 }
 ```
