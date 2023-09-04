@@ -50,7 +50,7 @@ class FineTuneProcessor:
 
 # Processor for prompt-tuning
 class PromptTuneProcessor:
-	def __init__(self, tokenizer, seq2seq: bool, max_encode_length: int):
+	def __init__(self, tokenizer, seq2seq: bool, max_encode_length: int, count: int):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length

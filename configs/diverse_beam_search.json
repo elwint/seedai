@@ -5,6 +5,6 @@
 	"diversity_penalty": 2.0,
 	"repetition_penalty": 2.0,
 	"presence_penalty": 2.0,
-	"num_beams": "<count>",
-	"num_beams_groups": "<count>"
+	"num_beams": "<execs>",
+	"num_beams_groups": "<execs>"
 }

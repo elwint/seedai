@@ -16,7 +16,7 @@ Known limitations:
 	"diversity_penalty": 2.0,       # Ignore by OpenAI
 	"repetition_penalty": 2.0,      # frequency_penalty for OpenAI
 	"presence_penalty": 2.0,        # Ignored by HuggingFace, requires group beam search)
-	"num_beams": "<count>",         # Ignored by OpenAI, default = 1 (no beam search)
-	"num_beams_groups": "<count>"   # Ignored by OpenAI, default = 1 (no group beam search)
+	"num_beams": "<execs>",         # Ignored by OpenAI, default = 1 (no beam search)
+	"num_beams_groups": "<execs>"   # Ignored by OpenAI, default = 1 (no group beam search)
 }
 ```

@@ -20,7 +20,7 @@ class OpenAIGenerator:
 			"temperature": self.temperature,
 			"top_p": self.top_p,
 			"stop": self.stop_token,
-			"n": self.count,
+			"n": self.execs,
 			"frequency_penalty": self.repetition_penalty,
 			"presence_penalty": self.presence_penalty,
 		}
@@ -85,7 +85,7 @@ class HFGenerator:
 			min_new_tokens=0,
 			max_new_tokens=self.max_new_tokens,
 			do_sample=self.do_sample,
-			num_return_sequences=self.count,
+			num_return_sequences=self.execs,
 			num_beams=self.num_beams,
 			num_beam_groups=self.num_beams_groups,
 			diversity_penalty=self.diversity_penalty,

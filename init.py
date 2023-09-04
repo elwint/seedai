@@ -52,7 +52,7 @@ def processor(args, tokenizer, isOpenAI):
 	if args.prompt_tuning:
 		processor = PromptTuneProcessor(tokenizer, seq2seq, max_encode_length)
 	else:
-		processor = FineTuneProcessor(tokenizer, seq2seq, args.split, max_encode_length)
+		processor = FineTuneProcessor(tokenizer, seq2seq, args.split, max_encode_length, args.count)
 
 	return processor
 
