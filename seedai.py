@@ -37,10 +37,10 @@ def main():
 	print("Parsing code ...")
 
 	source_code = run_parser(args.parser, args.func)
-	inputs, inputs_len = processor.encode(source_code)
-	print("	Encoded tokens:", inputs_len)
+	input_ids, system_ids = processor.encode(source_code)
+	print("	Encoded tokens:", len(input_ids))
 
-	decode_len = tokenizer.model_max_length-inputs_len
+	decode_len = tokenizer.model_max_length-len(input_ids)
 	if args.type == TYPE_SEQ2SEQ:
 		decode_len = tokenizer.model_max_length
 	generate_args['max_new_tokens'] = decode_len
@@ -56,7 +56,7 @@ def main():
 
 	total = 0
 	new_seeds = 0
-	for output in generator.generate(inputs):
+	for output in generator.generate(input_ids, system_ids):
 		seeds = processor.extract(output)
 		new_seeds += save_seeds(args.corpus, seeds)
 

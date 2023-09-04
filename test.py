@@ -5,6 +5,7 @@ import hashlib
 import tempfile
 
 from seedai import save_seeds
+from data_processor import extract_until_double_quotes
 
 class TestSaveSeeds(unittest.TestCase):
 
@@ -37,6 +38,27 @@ class TestSaveSeeds(unittest.TestCase):
 			for name in dirs:
 				os.rmdir(os.path.join(root, name))
 		os.rmdir(self.corpus_dir)
+
+
+class TestDataProcessor(unittest.TestCase):
+	def test_extract_until_double_quotes(self):
+		# Ignore escaped quotes \"
+		test_string = 'a\\"bc\\"def" // asdasdas'
+		expected = 'a\\"bc\\"def'
+		result = extract_until_double_quotes(test_string)
+		self.assertEqual(expected, result)
+
+		# End at first "
+		test_string = 'a"bc\\"def" // asdasdas'
+		expected = 'a'
+		result = extract_until_double_quotes(test_string)
+		self.assertEqual(expected, result)
+
+		# If " not found, return whole string
+		test_string = 'a\\"bc\\"def\\" // asdasdas'
+		expected = 'a\\"bc\\"def\\" // asdasdas'
+		result = extract_until_double_quotes(test_string)
+		self.assertEqual(expected, result)
 
 if __name__ == '__main__':
 	unittest.main()

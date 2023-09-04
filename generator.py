@@ -14,7 +14,7 @@ class OpenAIGenerator:
 		self.stop_token = stop_token
 		self.__dict__.update(kwargs)
 
-	def generate(self, inputs):
+	def generate(self, input_ids, system_ids):
 		args = {
 			"model": self.model,
 			"temperature": self.temperature,
@@ -25,20 +25,30 @@ class OpenAIGenerator:
 			"presence_penalty": self.presence_penalty,
 		}
 
+		input_str = self.tokenizer.decode(input_ids) # Decoding the input IDs using the tokenizer
 		if self.legacy:
-			input_ids = combine_inputs(inputs)
-			args["prompt"] = self.tokenizer.decode(input_ids) # Decoding the input IDs using the tokenizer
+			args["prompt"] = input_str
 			args["max_tokens"] = self.max_new_tokens # Default is not infinity for legacy
 		else:
-			args["messages"] = [{
-				"role": "user",
-				"content": self.tokenizer.decode(inputs['user'])
-			}]
-			if 'system' in inputs:
-				messages.insert(0, {
+			messages = []
+			if len(system_ids) > 0:
+				system_str = self.tokenizer.decode(system_ids)
+				input_str = input_str.replace(system_str, '') # The input_str includes system_str, which must be removed
+				messages.append({
 					"role": "system",
-					"content": self.tokenizer.decode(inputs['system'])
+					"content": system_str
 				})
+
+			messages.append({
+				"role": "user",
+				"content": input_str
+			})
+
+			args["messages"] = messages
+
+			# print("----------------------------------") # For debugging
+			# print(json.dumps(messages, indent=4))
+			# print("----------------------------------")
 
 		if self.legacy:
 			completion = openai.Completion.create(**args)
@@ -59,12 +69,11 @@ class HFGenerator:
 		stop_token_id = tokenizer.encode(stop_token, add_special_tokens=False)
 		if len(stop_token_id) != 1:
 			raise Exception("too many tokens for stop_token_id")
-			
+
 		self.stop_token_id = stop_token_id[0]
 		self.__dict__.update(kwargs)
 
-	def generate(self, inputs):
-		input_ids = combine_inputs(inputs)
+	def generate(self, input_ids, _):
 		stopping_criteria = StoppingCriteriaList([
 			StopTokenCriteria(self.stop_token_id),
 		])
@@ -89,13 +98,6 @@ class HFGenerator:
 				output = output[len(input_ids):] # Trim input from output
 			output = output[output != self.stop_token_id] # Remove stop token
 			yield self.tokenizer.decode(output, skip_special_tokens=True)
-
-def combine_inputs(inputs):
-	input_ids = inputs['user']
-	if 'system' in inputs:
-		input_ids += inputs['system']
-
-	return input_ids
 
 class StopTokenCriteria(StoppingCriteria):
 	def __init__(self, stop_token_id):

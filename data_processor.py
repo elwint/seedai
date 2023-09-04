@@ -1,4 +1,5 @@
 import subprocess
+import ast
 
 def run_parser(parser: str, func_name: str) -> str:
 	result = subprocess.run([parser, func_name],
@@ -29,12 +30,12 @@ class FineTuneProcessor:
 		if self.seq2seq:
 			suffix_tokens = [] # Do not add split tokens for seq2seq models
 
-		tok_input = encode(
+		input_ids = encode(
 			self.tokenizer, self.seq2seq, self.max_encode_length, source_code,
 			suffix_tokens=suffix_tokens,
 		)
 
-		return {'user': tok_input}, len(tok_input)
+		return input_ids, [] # Leave system empty
 
 	def stop_token(self):
 		return self.tokenizer.eos_token
@@ -47,22 +48,43 @@ class FineTuneProcessor:
 		return []
 
 
-# Processor for prompt-tuning (TODO)
+# Processor for prompt-tuning
 class PromptTuneProcessor:
-	def __init__(self, tokenizer, prefix: str, suffix: str, max_encode_length: int):
+	def __init__(self, tokenizer, seq2seq: bool, max_encode_length: int):
 		self.tokenizer = tokenizer
-		self.prefix = prefix
-		self.suffix = suffix
+		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length
 
+		prefix = "You are a code completer.\n"
+		suffix = "\n```\nfunc TestBug() {\n\tinput := \""
+
+		self.prefix_tokens = tokenizer.encode(prefix, add_special_tokens=False)
+		self.suffix_tokens = tokenizer.encode(suffix, add_special_tokens=False)
+
 	def encode(self, source_code: str):
-		raise Exception("not implemented")
+		input_ids = encode(
+			self.tokenizer, self.seq2seq, self.max_encode_length, source_code,
+			prefix_tokens=self.prefix_tokens,
+			suffix_tokens=self.suffix_tokens,
+		)
+
+		return input_ids, self.prefix_tokens
 
 	def stop_token(self):
-		raise Exception("not implemented")
+		return "\n"
 
 	def extract(self, output: str) -> list[str]:
-		raise Exception("not implemented")
+		output = extract_until_double_quotes(output)
+
+		# The output contains a string in code, which is escaped
+		try:
+			output = parse_escaped(output)
+		except SyntaxError:
+			pass
+
+		if len(output) > 0:
+			return [output]
+
 		return []
 
 def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
@@ -88,3 +110,14 @@ def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_t
 	# print("----------------------------------")
 
 	return encoded
+
+def extract_until_double_quotes(s):
+	# iterate from the start to the end
+	for i in range(len(s)):
+		if s[i] == '"' and (i == 0 or s[i-1] != '\\'):
+			return s[:i]
+	return s
+
+def parse_escaped(s):
+	str_val = '"'+s+'"'
+	return ast.literal_eval(str_val)
