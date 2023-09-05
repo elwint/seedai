@@ -72,13 +72,13 @@ class TestDataProcessor(unittest.TestCase):
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 
-		# Multiple values, escaped quote not ignored when finding next begin quote
+		# Multiple values, escaped quotes not ignored when finding next start of string
 		test_string = 'test. "a"bc\\"def" // asdasdas'
 		expected = ['a', 'def']
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 
-		# If " not found, return nothing
+		# Ignore if nothing found or all scaped
 		test_string = 'a\\"bc\\"def\\" // asdasdas'
 		expected = []
 		result = extract_values(test_string, True)
@@ -89,15 +89,27 @@ class TestDataProcessor(unittest.TestCase):
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 
-		# Multiple values
-		test_string = '[]string{"a\\"bc\\"def", "value2", "3"} // asdasdas'
+		# Multiple mixed values
+		test_string = '[]string{"a\\"bc\\"def", `value2`, "3"} // asdasdas'
 		expected = ['a\\"bc\\"def', "value2", "3"]
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 
-		# Multiple empty values
-		test_string = '[]string{"", "", "a"'
+		# Multiple mixed empty values
+		test_string = '[]string{"", ``, "a"'
 		expected = ['a']
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# Double quotes between backticks
+		test_string = '`"`'
+		expected = ['"']
+		result = extract_values(test_string, True)
+		self.assertEqual(expected, result)
+
+		# Backtick between double quotes
+		test_string = '"`"'
+		expected = ['`']
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 

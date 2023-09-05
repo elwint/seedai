@@ -86,10 +86,7 @@ class PromptTuneProcessor:
 		for line in output.splitlines():
 			values = extract_values(line, self.find_start)
 			if len(values) == 0:
-				if self.find_start:
-					continue
-				else:
-					values = [line]
+				continue
 
 			for seed in values:
 				# The output contains a string in source code, try to un-escape it
@@ -150,16 +147,21 @@ def extract_values(line: str, find_start: bool) -> list[str]:
 	return values
 
 def extract_value(line: str, find_start: bool) -> str:
+	stringType = '"'
 	start = 0
 	if find_start:
 		start = line.find('"')
+		startBT = line.find('`')
+		if start == -1 or (startBT != -1 and startBT < start):
+			start = startBT
+			stringType = '`'
 		if start == -1:
 			return "", -1
 		start += 1
 
 	# iterate from the start to the end
 	for i in range(start, len(line)):
-		if line[i] == '"' and (i == 0 or line[i-1] != '\\'):
+		if line[i] == stringType and (i == 0 or line[i-1] != '\\'):
 			return line[start:i], i
 
 	return "", -1
@@ -167,8 +169,6 @@ def extract_value(line: str, find_start: bool) -> str:
 def parse_escaped(value):
 	str_val = '"'+value+'"'
 	try:
-		value = ast.literal_eval(str_val)
+		return ast.literal_eval(str_val)
 	except SyntaxError: # Just return the original value on failure
-		pass
-
-	return value
+		return value

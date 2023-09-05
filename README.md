@@ -13,9 +13,9 @@ Known limitations:
 	"do_sample": false,             # Ignored by OpenAI
 	"temperature": 1.0,             # Default = 1.0, ignored if do_sample is false
 	"top_p": 1.0,                   # Default = 1.0, ignored if do_sample is false
-	"diversity_penalty": 2.0,       # Ignore by OpenAI
+	"diversity_penalty": 2.0,       # Ignore by OpenAI, requires group beam search
 	"repetition_penalty": 2.0,      # frequency_penalty for OpenAI
-	"presence_penalty": 2.0,        # Ignored by HuggingFace, requires group beam search)
+	"presence_penalty": 2.0,        # Ignored by HuggingFace
 	"num_beams": "<execs>",         # Ignored by OpenAI, default = 1 (no beam search)
 	"num_beams_groups": "<execs>"   # Ignored by OpenAI, default = 1 (no group beam search)
 }
