@@ -51,6 +51,7 @@ def main():
 	print("Generating ...")
 
 	stop_token = processor.stop_token()
+	printd("STOP TOKEN: "+stop_token)
 	if isOpenAI:
 		generator = OpenAIGenerator(model, tokenizer, stop_token, args.legacy, **generate_args)
 	else:

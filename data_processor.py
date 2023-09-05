@@ -57,7 +57,6 @@ class PromptTuneProcessor:
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length
-		self.stop = stop
 		self.find_start = find_start
 
 		prefix = prefix.replace("<count>", str(count))
@@ -65,6 +64,10 @@ class PromptTuneProcessor:
 
 		self.prefix_tokens = tokenizer.encode(prefix, add_special_tokens=False)
 		self.suffix_tokens = tokenizer.encode(suffix, add_special_tokens=False)
+
+		if stop == "<eos>":
+			stop = tokenizer.eos_token
+		self.stop = stop
 
 	def encode(self, source_code: str):
 		input_ids = encode(

@@ -90,4 +90,4 @@ def parse_args():
 
 def printd(v: str):
 	if debug:
-		print(v, file=debug)
+		print(v, file=debug, flush=True)

@@ -51,6 +51,7 @@ class OpenAIGenerator:
 			printd("-----------OPENAI CALL------------") # For debugging
 			printd(json.dumps(messages, indent=4))
 			printd("----------------------------------")
+			print('	Waiting for OpenAI result ...', end='', flush=True)
 
 		if self.legacy:
 			completion = openai.Completion.create(**args)
@@ -69,10 +70,12 @@ class HFGenerator:
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		stop_token_id = tokenizer.encode(stop_token, add_special_tokens=False)
-		if len(stop_token_id) != 1:
-			raise Exception("too many tokens for stop_token_id")
+		if len(stop_token_id) == 1:
+			self.stop_token_id = stop_token_id[0]
+		else:
+			print("WARNING: too many tokens for stop_token_id, using eos_token as stop token")
+			self.stop_token_id = tokenizer.eos_token_id
 
-		self.stop_token_id = stop_token_id[0]
 		self.__dict__.update(kwargs)
 
 	def generate(self, input_ids, _):
