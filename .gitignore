@@ -3,5 +3,7 @@ __pycache__/
 test/
 experiments/libfuzzer/libfuzzer
 experiments/libfuzzer/corpus/
+experiments/libfuzzer/base_corp/
+experiments/libfuzzer/source/
 data.out
 cov.out
