@@ -1,0 +1,29 @@
+diff --git a/orig.go b/fuzz.go
+index dead535..62aa5c5 100644
+--- a/orig.go
++++ b/fuzz.go
+@@ -2,9 +2,13 @@ package reverse
+ 
+ import (
+ 	"errors"
++	"fmt"
++	"time"
+ 	"unicode/utf8"
+ )
+ 
++var reached bool
++
+ func Fuzz(s string) int {
+ 	if len(s) == 0 {
+ 		return -1
+@@ -28,6 +32,10 @@ func Reverse(s string) (string, error) {
+ 	}
+ 	if len(s) == 100 && s[4:25] == `s9dgsdg3k4hsd89f7324s` {
+ 		r[0] = 'a'
++		if !reached {
++			reached = true
++			fmt.Println("REACHED:", time.Now())
++		}
+ 	}
+ 
+ 	return string(r), nil
