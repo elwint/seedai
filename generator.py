@@ -1,4 +1,5 @@
 import requests
+import math
 import json
 import os
 import openai
@@ -80,7 +81,7 @@ class HFGenerator:
 
 	def generate(self, input_ids, _):
 		stopping_criteria = StoppingCriteriaList([
-			StopTokenCriteria(self.stop_token_id),
+			StopTokenCriteria(self.stop_token_id, self.tokenizer.eos_token_id),
 		])
 
 		for output in self.model.generate(
@@ -105,21 +106,22 @@ class HFGenerator:
 			yield self.tokenizer.decode(output, skip_special_tokens=True)
 
 class StopTokenCriteria(StoppingCriteria):
-	def __init__(self, stop_token_id):
+	def __init__(self, stop_token_id, eos_token_id):
 		self.stop_token_id = stop_token_id
+		self.eos_token_id = eos_token_id
 		self.reached_stop_token = []
 
 	def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
 		stop = False
 		for k, tokens in enumerate(input_ids):
-			if k not in self.reached_stop_token and tokens[-1] == self.stop_token_id:
+			if k not in self.reached_stop_token and (tokens[-1] == self.stop_token_id or tokens[-1] == self.eos_token_id):
 				self.reached_stop_token.append(k)
 				stop = True
 
 		if stop:
-			print('S', end='', flush=True) # Reached stop token
+			print('S', end='', flush=True) # Reached stop/eos token
 			if len(self.reached_stop_token) == len(input_ids):
-				return True # This might be unnecessary as it is already handled by model.generate
+				return True # Stop generate on either stop token or eos token
 		else:
 			print('.', end='', flush=True)
 
