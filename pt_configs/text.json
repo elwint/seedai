@@ -2,5 +2,5 @@
 	"prefix": "",
 	"suffix": "\nA bug input: \"",
 	"stop": "\n",
-	"find_start": false
+	"multi_vals": false
 }

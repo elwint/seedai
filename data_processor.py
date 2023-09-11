@@ -52,12 +52,12 @@ class FineTuneProcessor:
 class PromptTuneProcessor:
 	def __init__(
 			self, tokenizer, seq2seq: bool, max_encode_length: int, count: int,
-			prefix: str, suffix: str, stop: str, find_start: bool,
+			prefix: str, suffix: str, stop: str, multi_vals: bool,
 		):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length
-		self.find_start = find_start
+		self.multi_vals = multi_vals
 
 		prefix = prefix.replace("<count>", str(count))
 		suffix = suffix.replace("<count>", str(count))
@@ -68,6 +68,10 @@ class PromptTuneProcessor:
 		if stop == "<eos>":
 			stop = tokenizer.eos_token
 		self.stop = stop
+
+		self.start_with_string = False
+		if len(suffix) > 0 and (suffix[-1] == '"' or suffix[-1] == "`"):
+			self.start_with_string = suffix[-1]
 
 	def encode(self, source_code: str):
 		input_ids = encode(
@@ -85,9 +89,12 @@ class PromptTuneProcessor:
 		if len(output) == 0:
 			return []
 
+		if self.start_with_string:
+			output = self.start_with_string + output
+
 		seeds = []
 		for line in output.splitlines():
-			values = extract_values(line, self.find_start)
+			values = extract_values(line, self.multi_vals)
 			if len(values) == 0:
 				continue
 
@@ -128,20 +135,20 @@ def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_t
 
 	return encoded
 
-def extract_values(line: str, find_start: bool) -> list[str]:
+def extract_values(line: str, multi_vals: bool) -> list[str]:
 	values = []
 
-	value, i = extract_value(line, find_start)
+	value, i = extract_value(line)
 	if value != "":
 		values.append(value)
 
-	if not find_start or i == -1:
+	if not multi_vals or i == -1:
 		return values
 
 	# Handle one-line cases like []string{"value1", "value2"}
 	while True:
 		line = line[i+1:]
-		value, i = extract_value(line, find_start)
+		value, i = extract_value(line)
 		if value != "":
 			values.append(value)
 		if i == -1:
@@ -149,18 +156,18 @@ def extract_values(line: str, find_start: bool) -> list[str]:
 
 	return values
 
-def extract_value(line: str, find_start: bool) -> str:
+def extract_value(line: str) -> str:
 	stringType = '"'
 	start = 0
-	if find_start:
-		start = line.find('"')
-		startBT = line.find('`')
-		if start == -1 or (startBT != -1 and startBT < start):
-			start = startBT
-			stringType = '`'
-		if start == -1:
-			return "", -1
-		start += 1
+
+	start = line.find('"')
+	startBT = line.find('`')
+	if start == -1 or (startBT != -1 and startBT < start):
+		start = startBT
+		stringType = '`'
+	if start == -1:
+		return "", -1
+	start += 1
 
 	# iterate from the start to the end
 	for i in range(start, len(line)):

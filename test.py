@@ -43,19 +43,19 @@ class TestSaveSeeds(unittest.TestCase):
 class TestDataProcessor(unittest.TestCase):
 	def test_extract_values(self):
 		# Ignore escaped quotes \"
-		test_string = 'a\\"bc\\"def" // asdasdas'
+		test_string = '"a\\"bc\\"def" // asdasdas'
 		expected = ['a\\"bc\\"def']
 		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
 
-		# End at first "
-		test_string = 'a"bc\\"def" // asdasdas'
+		# End at next "
+		test_string = '"a"bc\\"def" // asdasdas'
 		expected = ['a']
 		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
 
-		# If " not found, return nothing
-		test_string = 'a\\"bc\\"def\\" // asdasdas'
+		# If next " not found, return nothing
+		test_string = '"a\\"bc\\"def\\" // asdasdas'
 		expected = []
 		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
@@ -65,7 +65,19 @@ class TestDataProcessor(unittest.TestCase):
 		result = extract_values(test_string, False)
 		self.assertEqual(expected, result)
 
-	def test_extract_values_find_start(self):
+		# Double quotes between backticks
+		test_string = '`"`'
+		expected = ['"']
+		result = extract_values(test_string, False)
+		self.assertEqual(expected, result)
+
+		# Backtick between double quotes
+		test_string = '"`"'
+		expected = ['`']
+		result = extract_values(test_string, False)
+		self.assertEqual(expected, result)
+
+	def test_extract_values_multi_vals(self):
 		# Ignore escaped quotes \"
 		test_string = '"a\\"bc\\"def" // asdasdas'
 		expected = ['a\\"bc\\"def']
@@ -98,18 +110,6 @@ class TestDataProcessor(unittest.TestCase):
 		# Multiple mixed empty values
 		test_string = '[]string{"", ``, "a"'
 		expected = ['a']
-		result = extract_values(test_string, True)
-		self.assertEqual(expected, result)
-
-		# Double quotes between backticks
-		test_string = '`"`'
-		expected = ['"']
-		result = extract_values(test_string, True)
-		self.assertEqual(expected, result)
-
-		# Backtick between double quotes
-		test_string = '"`"'
-		expected = ['`']
 		result = extract_values(test_string, True)
 		self.assertEqual(expected, result)
 

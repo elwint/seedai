@@ -54,8 +54,8 @@ def parse_args():
 					 help=f"corpus directory. Default is '{default_corpus}'.")
 
 	parser.add_argument("--split", "-s", default=default_split,
-					 help="split string for causal model inference without prompt tuning. Default is '{}'.".
-						format(default_split.replace('\n', '\\n')))
+					 help="split string for causal model inference without prompt tuning. Default is {}.".
+						format(json.dumps(default_split)))
 
 	parser.add_argument("--debug", "--verbose", "-v", action="store_true", default=default_debug,
 					 help=f"print debug output to debug.out. Default is {default_debug}.")

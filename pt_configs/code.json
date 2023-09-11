@@ -2,5 +2,5 @@
 	"prefix": "You are a code completer.\n",
 	"suffix": "\n```\nfunc TestBug() {\n\tinput := \"",
 	"stop": "\n",
-	"find_start": false
+	"multi_vals": false
 }

@@ -1,6 +1,6 @@
 {
 	"prefix": "You are a code completer.\n",
-	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{",
+	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{\"",
 	"stop": "<eos>",
-	"find_start": true
+	"multi_vals": true
 }

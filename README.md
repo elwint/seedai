@@ -27,6 +27,6 @@ Known limitations:
 	"prefix": "You are a code completer.\n",
 	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{",
 	"stop": "}",
-	"find_start": true		# Find start of string, may extract multiple values when true
+	"multi_vals": true		# Extract multiple values per line
 }
 ```
