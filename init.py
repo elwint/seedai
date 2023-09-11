@@ -21,7 +21,8 @@ def model(args, isOpenAI):
 	if args.type == TYPE_SEQ2SEQ:
 		model = AutoModelForSeq2SeqLM.from_pretrained(args.model, torch_dtype=torch_dtype)
 
-	return model
+	device = "cuda:0" if torch.cuda.is_available() else "cpu"
+	return model.to(device)
 
 def tokenizer(args):
 	try:

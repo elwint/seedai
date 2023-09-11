@@ -67,6 +67,7 @@ class OpenAIGenerator:
 
 class HFGenerator:
 	def __init__(self, model, tokenizer, stop_token, seq2seq, **kwargs):
+		self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 		self.model = model
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
@@ -85,7 +86,7 @@ class HFGenerator:
 		])
 
 		for output in self.model.generate(
-			input_ids=torch.as_tensor([input_ids]),
+			input_ids=torch.as_tensor([input_ids]).to(self.device),
 			temperature=self.temperature,
 			top_p=self.top_p,
 			min_new_tokens=0,
