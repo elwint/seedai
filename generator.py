@@ -75,7 +75,7 @@ class HFGenerator:
 		if len(stop_token_id) == 1:
 			self.stop_token_id = stop_token_id[0]
 		else:
-			print("WARNING: too many tokens for stop_token_id, using eos_token as stop token")
+			print("WARNING: too many tokens for stop_token_id, using only eos_token as stop token")
 			self.stop_token_id = tokenizer.eos_token_id
 
 		self.__dict__.update(kwargs)

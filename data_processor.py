@@ -55,7 +55,7 @@ class FineTuneProcessor:
 class PromptTuneProcessor:
 	def __init__(
 			self, tokenizer, seq2seq: bool, max_encode_length: int, count: int,
-			prefix: str, suffix: str, stop: str, multi_vals: bool, code_only: bool,
+			prefix: str, suffix: str, multi_vals: bool, code_only: bool, stop: str = ""
 		):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
@@ -68,7 +68,7 @@ class PromptTuneProcessor:
 		self.prefix_tokens = tokenizer.encode(prefix, add_special_tokens=False)
 		self.suffix_tokens = tokenizer.encode(suffix, add_special_tokens=False)
 
-		if stop == "<eos>":
+		if stop == "":
 			stop = tokenizer.eos_token
 		self.stop = stop
 

@@ -1,7 +1,6 @@
 {
 	"prefix": "",
 	"suffix": "\n\nfunc Test<count>Bugs() {\n\tinputs := []string{\"",
-	"stop": "<eos>",
 	"multi_vals": true,
 	"code_only": true
 }

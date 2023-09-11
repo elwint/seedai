@@ -26,7 +26,7 @@ Known limitations:
 {
 	"prefix": "You are a code completer.\n",
 	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{",
-	"stop": "<eos>",		# If set to "<eos>", then it only stops on eos token
+	"stop": "}",			# Optional stop token (next to EOS token)
 	"multi_vals": true,		# Extract multiple values per line
 	"code_only": false		# Set to true for code-only models
 }
