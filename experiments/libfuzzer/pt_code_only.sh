@@ -10,7 +10,7 @@ fi
 args="${@:2}"
 
 for conf in ../../configs/*; do
-  for pt_conf in ../../pt_configs/go/*.json; do
+  for pt_conf in ../../pt_configs/go/code_only/*.json; do
     execs="-C 10"
     [[ "$pt_conf" == *multi.json ]] && execs="-E 2 -C 5"
     timeout 10m bash ./collect.sh "$1"/pt/$(basename $conf)_$(basename $pt_conf) \

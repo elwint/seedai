@@ -2,8 +2,11 @@ import subprocess
 import ast
 from args import printd
 
-def run_parser(parser: str, func_name: str) -> str:
-	result = subprocess.run([parser, func_name],
+def run_parser(parser: str, func_name: str, code_only: bool) -> str:
+	parser_args = [parser, "-func", func_name]
+	if code_only:
+		parser_args.append("-code")
+	result = subprocess.run(parser_args,
 						 text=True,  # Output will be treated as string.
 						 capture_output=True)  # Capture stdout and stderr.
 
@@ -52,7 +55,7 @@ class FineTuneProcessor:
 class PromptTuneProcessor:
 	def __init__(
 			self, tokenizer, seq2seq: bool, max_encode_length: int, count: int,
-			prefix: str, suffix: str, stop: str, multi_vals: bool,
+			prefix: str, suffix: str, stop: str, multi_vals: bool, code_only: bool,
 		):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq

@@ -1,0 +1,7 @@
+{
+	"prefix": "",
+	"suffix": "\n\nfunc TestBug() {\n\tinput := \"",
+	"stop": "\n",
+	"multi_vals": false,
+	"code_only": true
+}

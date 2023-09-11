@@ -1,0 +1,7 @@
+{
+	"prefix": "",
+	"suffix": "\n\n// A list of <count> bug inputs:\n// 1. \"",
+	"stop": "func",
+	"multi_vals": true,
+	"code_only": true
+}

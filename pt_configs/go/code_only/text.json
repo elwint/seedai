@@ -1,0 +1,7 @@
+{
+	"prefix": "",
+	"suffix": "\n\n// A bug input: \"",
+	"stop": "\n",
+	"multi_vals": false,
+	"code_only": true
+}

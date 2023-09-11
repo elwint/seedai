@@ -2,5 +2,6 @@
 	"prefix": "",
 	"suffix": "\nA bug input: \"",
 	"stop": "\n",
-	"multi_vals": false
+	"multi_vals": false,
+	"code_only": false
 }

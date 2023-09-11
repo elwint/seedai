@@ -2,5 +2,6 @@
 	"prefix": "",
 	"suffix": "\nGenerate <count> bug inputs:\n1. \"",
 	"stop": "<eos>",
-	"multi_vals": true
+	"multi_vals": true,
+	"code_only": false
 }

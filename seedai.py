@@ -38,7 +38,11 @@ def main():
 
 	print("Parsing code ...")
 
-	source_code = run_parser(args.parser, args.func)
+	code_only = False
+	if args.prompt_tuning:
+		code_only = args.prompt_tuning['code_only']
+
+	source_code = run_parser(args.parser, args.func, code_only)
 	input_ids, system_ids = processor.encode(source_code)
 	print("	Encoded tokens:", len(input_ids))
 
@@ -66,7 +70,7 @@ def main():
 
 		seeds = processor.extract(output)
 
-		printd("--------EXTRACTED SEEDS-----------")
+		printd("----------EXTRACTED SEEDS---------")
 		for seed in seeds:
 			printd(seed)
 			printd("----------------------------------")

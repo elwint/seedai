@@ -2,5 +2,6 @@
 	"prefix": "Complete the code.\n",
 	"suffix": "\n```\nfunc Test<count>Bugs() {\n\tinputs := []string{\"",
 	"stop": "}",
-	"multi_vals": true
+	"multi_vals": true,
+	"code_only": false
 }
