@@ -12,7 +12,7 @@ args="${@:2}"
 for i in {1..4}; do
   for conf in ../../configs/*; do
     timeout 10m bash ./collect.sh "$1"/ft/$(basename $conf)_$i \
-      sh -c "cd source && ../../../seedai.py -v -p ../../../bin/goparser -C 10 -d ../corpus -c ../$conf $args"
+      sh -c "cd source && ../../../seedai.py -v -p ../../../bin/goparser -n 10 -d ../corpus -c ../$conf $args"
     exit_status=$?
     if [[ $exit_status -ne 0 ]] && [[ $exit_status -ne 124 ]]; then
       exit $exit_status

@@ -51,7 +51,7 @@ def processor(args, tokenizer, isOpenAI):
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
 	if args.prompt_tuning:
-		processor = PromptTuneProcessor(tokenizer, seq2seq, max_encode_length, args.count, **args.prompt_tuning)
+		processor = PromptTuneProcessor(tokenizer, seq2seq, max_encode_length, args.pt_count, **args.prompt_tuning)
 	else:
 		processor = FineTuneProcessor(tokenizer, seq2seq, args.split, max_encode_length)
 

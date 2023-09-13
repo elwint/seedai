@@ -6,5 +6,5 @@
 	"repetition_penalty": 2.0,
 	"presence_penalty": 2.0,
 	"num_beams": 10,
-	"num_beams_groups": 10
+	"num_beam_groups": 10
 }
