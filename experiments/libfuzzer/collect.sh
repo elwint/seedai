@@ -19,4 +19,6 @@ awk '{
   }
 }' < <(./libfuzzer corpus -use_value_profile=1 2>&1 >>"$1"/data.out) >"$1"/cov.out
 
+date +"DONE: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
+
 exit 0
