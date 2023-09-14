@@ -17,8 +17,14 @@ awk '{
     system("date +\"%Y-%m-%d %H:%M:%S.%3N\" | tr -d \"\\n\"");
     printf ",cov: %s,ft: %s\n", covArr[1], ftArr[1]
   }
-}' < <(./libfuzzer corpus -use_value_profile=1 2>&1 >>"$1"/data.out) >"$1"/cov.out
-
-date +"DONE: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
+}' < <(
+timeout 10m ./libfuzzer corpus -use_value_profile=1 2>&1 >>"$1"/data.out
+exit_status=$?
+if [[ $exit_status -eq 124 ]]; then
+  date +"TIMEDOUT: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
+else
+  date +"DONE: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
+fi
+) >"$1"/cov.out
 
 exit 0
