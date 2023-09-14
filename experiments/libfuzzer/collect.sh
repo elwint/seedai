@@ -1,4 +1,6 @@
 #!/bin/bash
+set -o pipefail
+
 mkdir -p "$1" || exit 1
 
 rm -r corpus
@@ -9,6 +11,7 @@ date +"START: %Y-%m-%d %H:%M:%S.%3N" >"$1"/data.out || exit 1
 if [ ! -z "$2" ]; then
   echo "${@:2}"
   "${@:2}" || exit 1
+  cp -r corpus "$1"/corpus # Log generated corpus
   date +"SEEDS: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
 fi
 
@@ -18,7 +21,7 @@ awk '{
     printf ",cov: %s,ft: %s\n", covArr[1], ftArr[1]
   }
 }' < <(
-timeout 10m ./libfuzzer corpus -use_value_profile=1 2>&1 >>"$1"/data.out
+timeout 10m ./libfuzzer corpus -use_value_profile=1 2>&1 >>"$1"/data.out | tee "$1"/log.out
 exit_status=$?
 if [[ $exit_status -eq 124 ]]; then
   date +"TIMEDOUT: %Y-%m-%d %H:%M:%S.%3N" >>"$1"/data.out
