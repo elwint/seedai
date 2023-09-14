@@ -1,0 +1,9 @@
+libfuzzer:
+	cp item/domain/item.go /tmp/item.go
+	cp item/domain/item.go.instrument item/domain/item.go
+	golang-fuzz -func=Fuzz -libfuzzer . || (make revert; exit 1)
+	make revert
+
+revert:
+	cp item/domain/item.go item/domain/item.go.instrument
+	cp /tmp/item.go item/domain/item.go
