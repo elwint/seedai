@@ -1,4 +1,4 @@
-import urllib, json
+import os, urllib, json
 from transformers import AutoConfig, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 import torch
 import tiktoken
@@ -11,15 +11,15 @@ def model(args, isOpenAI):
 	if isOpenAI:
 		return args.model
 
-	config = AutoConfig.from_pretrained(args.model)
+	config = AutoConfig.from_pretrained(args.model, trust_remote_code=True)
 	torch_dtype = None
 	if config.torch_dtype == torch.float32:
 		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for float32 models (requires CUDA)
 
 	if args.type == TYPE_CAUSAL:
-		model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch_dtype) # TODO: device_map="auto" if needed?
+		model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch_dtype, trust_remote_code=True) # TODO: device_map="auto" if needed?
 	if args.type == TYPE_SEQ2SEQ:
-		model = AutoModelForSeq2SeqLM.from_pretrained(args.model, torch_dtype=torch_dtype)
+		model = AutoModelForSeq2SeqLM.from_pretrained(args.model, torch_dtype=torch_dtype, trust_remote_code=True)
 
 	device = "cuda:0" if torch.cuda.is_available() else "cpu"
 	return model.to(device)
@@ -29,7 +29,8 @@ def tokenizer(args):
 		tokenizer = OpenAITokenizer(args.model)
 		isOpenAI = True
 	except KeyError:
-		tokenizer = AutoTokenizer.from_pretrained(args.model)
+		name = get_model_tokenizer_name(args.model)
+		tokenizer = AutoTokenizer.from_pretrained(name, trust_remote_code=True)
 		isOpenAI = False
 
 	if args.length > 0:
@@ -39,6 +40,16 @@ def tokenizer(args):
 		# TODO: Some hard-coded max lengths for known models?
 
 	return tokenizer, isOpenAI
+
+def get_model_tokenizer_name(name_or_path: str) -> str:
+	config_file = os.path.join(name_or_path, "config.json")
+
+	if os.path.exists(config_file):
+		with open(config_file, "r") as f:
+			config = json.load(f)
+			return config.get('_name_or_path', name_or_path)
+	else:
+		return name_or_path
 
 def processor(args, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
