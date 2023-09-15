@@ -114,17 +114,17 @@ class PromptTuneProcessor:
 
 		return seeds
 
-def encode(tokenizer, seq2seq: bool, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
+def encode(tokenizer, seq2seq, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
 	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens)
-	if seq2seq:
-		max_length -= 2
+	if seq2seq == "t5":
+		max_length -= 3
 	if max_length <= 0:
 		raise Exception("Encode length too small")
 
 	encoded = tokenizer.encode(text, truncation=True, max_length=max_length, add_special_tokens=False)
 	encoded = prefix_tokens + encoded + suffix_tokens
-	if seq2seq:
-		encoded = [tokenizer.bos_token_id] + encoded + [tokenizer.eos_token_id]
+	if seq2seq == "t5":
+		encoded = [tokenizer.bos_token_id] + encoded + [tokenizer.extra_token_id, tokenizer.eos_token_id]
 
 	if len(encoded) > max_encode_length:
 		raise Exception("Encoded length too large")

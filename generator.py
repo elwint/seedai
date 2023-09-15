@@ -81,12 +81,15 @@ class HFGenerator:
 		self.__dict__.update(kwargs)
 
 	def generate(self, input_ids, _):
-		stopping_criteria = StoppingCriteriaList([
-			StopTokenCriteria(self.stop_token_id, self.tokenizer.eos_token_id),
-		])
+		stopping_criteria = StopTokenCriteria(self.stop_token_id, self.tokenizer.eos_token_id, self.tokenizer)
+		stopping_criteria_list = StoppingCriteriaList([stopping_criteria])
+
+		inputs = {'input_ids': torch.as_tensor([input_ids]).to(self.device)}
+		if self.seq2seq == "codet5p":
+			inputs['decoder_input_ids'] = inputs['input_ids'].clone()
 
 		for output in self.model.generate(
-			input_ids=torch.as_tensor([input_ids]).to(self.device),
+			**inputs,
 			temperature=self.temperature,
 			top_p=self.top_p,
 			min_new_tokens=0,
@@ -98,21 +101,23 @@ class HFGenerator:
 			diversity_penalty=self.diversity_penalty,
 			repetition_penalty=self.repetition_penalty,
 			pad_token_id=self.tokenizer.eos_token_id,
-			stopping_criteria=stopping_criteria,
+			stopping_criteria=stopping_criteria_list,
 			eos_token_id=self.stop_token_id,
 		):
-			if not self.seq2seq:
-				output = output[len(input_ids):] # Trim input from output
+			output = output[-stopping_criteria.generated:] # Trim input from output
 			output = output[output != self.stop_token_id] # Remove stop token
 			yield self.tokenizer.decode(output, skip_special_tokens=True)
 
 class StopTokenCriteria(StoppingCriteria):
-	def __init__(self, stop_token_id, eos_token_id):
+	def __init__(self, stop_token_id, eos_token_id, tokenizer):
+		self.generated = 0
 		self.stop_token_id = stop_token_id
 		self.eos_token_id = eos_token_id
 		self.reached_stop_token = []
+		self.tokenizer = tokenizer
 
 	def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+		self.generated += 1
 		stop = False
 		for k, tokens in enumerate(input_ids):
 			if k not in self.reached_stop_token and (tokens[-1] == self.stop_token_id or tokens[-1] == self.eos_token_id):

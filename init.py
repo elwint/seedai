@@ -33,13 +33,21 @@ def tokenizer(args):
 		tokenizer = AutoTokenizer.from_pretrained(name, trust_remote_code=True)
 		isOpenAI = False
 
+	seq2seq = False
+	if not isOpenAI and args.type == TYPE_SEQ2SEQ:
+		config = AutoConfig.from_pretrained(args.model, trust_remote_code=True)
+		if config.model_type == "t5":
+			tokenizer.model_max_length = 2048 # Overwrite incorrect max length for small codet5+
+			tokenizer.extra_token_id = tokenizer.encode("<extra_id_0>", add_special_tokens=False)[0]
+		seq2seq = config.model_type
+
 	if args.length > 0:
 		tokenizer.model_max_length = args.length
 	if (not hasattr(tokenizer, "model_max_length")) or tokenizer.model_max_length > 1e29:
 		tokenizer.model_max_length = int(input("No default max model length. Enter max length: "))
 		# TODO: Some hard-coded max lengths for known models?
 
-	return tokenizer, isOpenAI
+	return tokenizer, isOpenAI, seq2seq
 
 def get_model_tokenizer_name(name_or_path: str) -> str:
 	config_file = os.path.join(name_or_path, "config.json")
@@ -51,13 +59,11 @@ def get_model_tokenizer_name(name_or_path: str) -> str:
 	else:
 		return name_or_path
 
-def processor(args, tokenizer, isOpenAI):
+def processor(args, seq2seq, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
 		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
-		seq2seq = False
 	if args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
-		seq2seq = True
 	if isOpenAI and not args.legacy:
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input
 
@@ -76,7 +82,7 @@ class OpenAITokenizer: # Wrapper class to make OpenAI tokenizer compatible
 		self.eos_token = "<|endoftext|>"
 		if len(split) > 1:
 			self.eos_token = " END" # Ft-models use " END" as eos_token (assuming OpenAI's default fine-tune format)
-		
+
 		eos_token_id = self.enc.encode(self.eos_token, allowed_special="all")
 		if len(eos_token_id) != 1:
 			raise Exception("too many tokens for eos_token_id")

@@ -19,22 +19,23 @@ def main():
 	os.makedirs(args.corpus, exist_ok=True)
 
 	print("Loading tokenizer ...")
-	tokenizer, isOpenAI = init.tokenizer(args)
+	tokenizer, isOpenAI, seq2seq = init.tokenizer(args)
+	printd("SEQ2SEQ: " + str(seq2seq))
 	print("	EOS token:", tokenizer.eos_token)
 
 	if isOpenAI and 'OPENAI_API_KEY' not in os.environ:
 		raise Exception("Please set OPENAI_API_KEY env variable")
 
-	print("Loading model ...")
-	model = init.model(args, isOpenAI)
-
-	processor = init.processor(args, tokenizer, isOpenAI)
+	processor = init.processor(args, seq2seq, tokenizer, isOpenAI)
 
 	total_max_length = tokenizer.model_max_length
 	if args.type == TYPE_SEQ2SEQ:
 		total_max_length = 2*tokenizer.model_max_length
 	print("	Model total max tokens:", total_max_length)
 	print("	Max encode tokens:", processor.max_encode_length)
+
+	print("Loading model ...")
+	model = init.model(args, isOpenAI)
 
 	print("Parsing code ...")
 
@@ -59,7 +60,7 @@ def main():
 	if isOpenAI:
 		generator = OpenAIGenerator(model, tokenizer, stop_token, args.legacy, **generate_args)
 	else:
-		generator = HFGenerator(model, tokenizer, stop_token, args.type == TYPE_SEQ2SEQ, **generate_args)
+		generator = HFGenerator(model, tokenizer, stop_token, seq2seq, **generate_args)
 
 	total = 0
 	new_seeds = 0
