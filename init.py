@@ -40,6 +40,8 @@ def tokenizer(args):
 			tokenizer.model_max_length = 2048 # Overwrite incorrect max length for small codet5+
 			tokenizer.extra_token_id = tokenizer.encode("<extra_id_0>", add_special_tokens=False)[0]
 		seq2seq = config.model_type
+		if not args.prompt_tuning:
+			seq2seq += "-ft"
 
 	if args.length > 0:
 		tokenizer.model_max_length = args.length

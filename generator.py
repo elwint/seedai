@@ -85,7 +85,7 @@ class HFGenerator:
 		stopping_criteria_list = StoppingCriteriaList([stopping_criteria])
 
 		inputs = {'input_ids': torch.as_tensor([input_ids]).to(self.device)}
-		if self.seq2seq == "codet5p":
+		if self.seq2seq == "codet5p": # Only for bigger CodeT5+ models (and not fine-tuned)
 			inputs['decoder_input_ids'] = inputs['input_ids'].clone()
 
 		for output in self.model.generate(

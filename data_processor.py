@@ -23,11 +23,13 @@ def run_parser(parser: str, func_name: str, code_only: bool) -> str:
 
 # Processor for fine-tuned models
 class FineTuneProcessor:
-	def __init__(self, tokenizer, seq2seq: bool, split: str, max_encode_length: int):
+	def __init__(self, tokenizer, seq2seq, split: str, max_encode_length: int):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.split_tokens = tokenizer.encode(split, add_special_tokens=False)
 		self.max_encode_length = max_encode_length
+		if seq2seq == "t5" or seq2seq == "t5-ft":
+			self.max_encode_length -= 2
 
 	def encode(self, source_code: str):
 		suffix_tokens = self.split_tokens
@@ -35,9 +37,12 @@ class FineTuneProcessor:
 			suffix_tokens = [] # Do not add split tokens for seq2seq models
 
 		input_ids = encode(
-			self.tokenizer, self.seq2seq, self.max_encode_length, source_code,
+			self.tokenizer, self.max_encode_length, source_code,
 			suffix_tokens=suffix_tokens,
 		)
+
+		if self.seq2seq == "t5" or self.seq2seq == "t5-ft":
+			input_ids = [self.tokenizer.bos_token_id] + input_ids + [self.tokenizer.eos_token_id]
 
 		return input_ids, [] # Leave system empty
 
@@ -54,12 +59,14 @@ class FineTuneProcessor:
 # Processor for prompt-tuning
 class PromptTuneProcessor:
 	def __init__(
-			self, tokenizer, seq2seq: bool, max_encode_length: int, count: int,
+			self, tokenizer, seq2seq, max_encode_length: int, count: int,
 			prefix: str, suffix: str, multi_vals: bool, code_only: bool, stop: str = ""
 		):
 		self.tokenizer = tokenizer
 		self.seq2seq = seq2seq
 		self.max_encode_length = max_encode_length
+		if seq2seq == "t5" or seq2seq == "t5-ft":
+			self.max_encode_length -= 3
 		self.multi_vals = multi_vals
 
 		prefix = prefix.replace("<count>", str(count))
@@ -78,10 +85,13 @@ class PromptTuneProcessor:
 
 	def encode(self, source_code: str):
 		input_ids = encode(
-			self.tokenizer, self.seq2seq, self.max_encode_length, source_code,
+			self.tokenizer, self.max_encode_length, source_code,
 			prefix_tokens=self.prefix_tokens,
 			suffix_tokens=self.suffix_tokens,
 		)
+
+		if self.seq2seq == "t5" or self.seq2seq == "t5-ft":
+			input_ids = [self.tokenizer.bos_token_id] + input_ids + [self.tokenizer.extra_token_id, self.tokenizer.eos_token_id]
 
 		return input_ids, self.prefix_tokens
 
@@ -114,27 +124,19 @@ class PromptTuneProcessor:
 
 		return seeds
 
-def encode(tokenizer, seq2seq, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
+def encode(tokenizer, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
 	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens)
-	if seq2seq == "t5":
-		max_length -= 3
 	if max_length <= 0:
 		raise Exception("Encode length too small")
 
 	encoded = tokenizer.encode(text, truncation=True, max_length=max_length, add_special_tokens=False)
 	encoded = prefix_tokens + encoded + suffix_tokens
-	if seq2seq == "t5":
-		encoded = [tokenizer.bos_token_id] + encoded + [tokenizer.extra_token_id, tokenizer.eos_token_id]
 
 	if len(encoded) > max_encode_length:
 		raise Exception("Encoded length too large")
 
 	if len(encoded) == max_encode_length:
 		print("	Warning: input length >= max encode length, prompt truncated")
-
-	printd("--------------INPUT---------------") # For debugging
-	printd(tokenizer.decode(encoded))
-	printd("----------------------------------")
 
 	return encoded
 

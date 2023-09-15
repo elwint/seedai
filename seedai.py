@@ -45,6 +45,9 @@ def main():
 
 	source_code = run_parser(args.parser, args.func, code_only)
 	input_ids, system_ids = processor.encode(source_code)
+	printd("--------------INPUT---------------") # For debugging
+	printd(tokenizer.decode(input_ids))
+	printd("----------------------------------")
 	print("	Encoded tokens:", len(input_ids))
 
 	decode_len = tokenizer.model_max_length-len(input_ids)
