@@ -1,5 +1,6 @@
 import os, urllib, json
 from transformers import AutoConfig, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+from peft import PeftModel
 import torch
 import tiktoken
 
@@ -11,15 +12,24 @@ def model(args, isOpenAI):
 	if isOpenAI:
 		return args.model
 
-	config = AutoConfig.from_pretrained(args.model, trust_remote_code=True)
+
+	base_name, isLoRA = get_model_base_name(args.model)
+	name_or_path = args.model
+	if isLoRA:
+		name_or_path = base_name
+
+	config = AutoConfig.from_pretrained(name_or_path, trust_remote_code=True)
 	torch_dtype = None
 	if config.torch_dtype == torch.float32:
 		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for float32 models (requires CUDA)
 
 	if args.type == TYPE_CAUSAL:
-		model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch_dtype, trust_remote_code=True) # TODO: device_map="auto" if needed?
+		model = AutoModelForCausalLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True) # TODO: device_map="auto" if needed?
 	if args.type == TYPE_SEQ2SEQ:
-		model = AutoModelForSeq2SeqLM.from_pretrained(args.model, torch_dtype=torch_dtype, trust_remote_code=True)
+		model = AutoModelForSeq2SeqLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True)
+	if isLoRA:
+		model = PeftModel.from_pretrained(model, args.model, torch_dtype=torch_dtype, trust_remote_code=True)
+		model = model.merge_and_unload()
 
 	device = "cuda:0" if torch.cuda.is_available() else "cpu"
 	return model.to(device)
@@ -28,14 +38,18 @@ def tokenizer(args):
 	try:
 		tokenizer = OpenAITokenizer(args.model)
 		isOpenAI = True
+		isLoRA = False
 	except KeyError:
-		name = get_model_tokenizer_name(args.model)
-		tokenizer = AutoTokenizer.from_pretrained(name, trust_remote_code=True)
+		base_name, isLoRA = get_model_base_name(args.model)
+		tokenizer = AutoTokenizer.from_pretrained(base_name, trust_remote_code=True)
 		isOpenAI = False
 
 	seq2seq = False
 	if not isOpenAI and args.type == TYPE_SEQ2SEQ:
-		config = AutoConfig.from_pretrained(args.model, trust_remote_code=True)
+		name_or_path = args.model
+		if isLoRA:
+			name_or_path = base_name
+		config = AutoConfig.from_pretrained(name_or_path, trust_remote_code=True)
 		if config.model_type == "t5":
 			tokenizer.model_max_length = 2048 # Overwrite incorrect max length for small codet5+
 			tokenizer.extra_token_id = tokenizer.encode("<extra_id_0>", add_special_tokens=False)[0]
@@ -51,15 +65,20 @@ def tokenizer(args):
 
 	return tokenizer, isOpenAI, seq2seq
 
-def get_model_tokenizer_name(name_or_path: str) -> str:
+def get_model_base_name(name_or_path: str) -> str:
 	config_file = os.path.join(name_or_path, "config.json")
+	lora_config_file = os.path.join(name_or_path, "adapter_config.json")
 
 	if os.path.exists(config_file):
 		with open(config_file, "r") as f:
 			config = json.load(f)
-			return config.get('_name_or_path', name_or_path)
+			return config.get('_name_or_path', name_or_path), False
+	elif os.path.exists(lora_config_file):
+		with open(lora_config_file, "r") as f:
+			config = json.load(f)
+			return config.get('base_model_name_or_path', name_or_path), True
 	else:
-		return name_or_path
+		return name_or_path, False
 
 def processor(args, seq2seq, tokenizer, isOpenAI):
 	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
