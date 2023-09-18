@@ -83,11 +83,16 @@ class PromptTuneProcessor:
 		if len(suffix) > 0 and (suffix[-1] == '"' or suffix[-1] == "`"):
 			self.start_with_string = suffix[-1]
 
+		self.check_suffix_tokens = []
+		if not code_only:
+			self.check_suffix_tokens = tokenizer.encode("\n```", add_special_tokens=False)
+
 	def encode(self, source_code: str):
 		input_ids = encode(
 			self.tokenizer, self.max_encode_length, source_code,
 			prefix_tokens=self.prefix_tokens,
 			suffix_tokens=self.suffix_tokens,
+			check_suffix_tokens=self.check_suffix_tokens,
 		)
 
 		if self.seq2seq == "t5" or self.seq2seq == "t5-ft":
@@ -124,19 +129,22 @@ class PromptTuneProcessor:
 
 		return seeds
 
-def encode(tokenizer, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = []):
-	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens)
+def encode(tokenizer, max_encode_length: int, text: str, prefix_tokens = [], suffix_tokens = [], check_suffix_tokens = []):
+	max_length = max_encode_length - len(prefix_tokens) - len(suffix_tokens) - len(check_suffix_tokens)
 	if max_length <= 0:
 		raise Exception("Encode length too small")
 
 	encoded = tokenizer.encode(text, truncation=True, max_length=max_length, add_special_tokens=False)
+	if len(encoded) >= max_length:
+		print("	Warning: input length >= max encode length, prompt truncated")
+
+	if len(check_suffix_tokens) > 0 and encoded[-len(check_suffix_tokens):] != check_suffix_tokens:
+		suffix_tokens = check_suffix_tokens + suffix_tokens
+
 	encoded = prefix_tokens + encoded + suffix_tokens
 
 	if len(encoded) > max_encode_length:
 		raise Exception("Encoded length too large")
-
-	if len(encoded) == max_encode_length:
-		print("	Warning: input length >= max encode length, prompt truncated")
 
 	return encoded
 
