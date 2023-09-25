@@ -36,7 +36,7 @@ def model(args, isOpenAI):
 
 def tokenizer(args):
 	try:
-		tokenizer = OpenAITokenizer(args.model)
+		tokenizer = OpenAITokenizer(args.model, args.legacy)
 		isOpenAI = True
 		isLoRA = False
 	except KeyError:
@@ -96,13 +96,16 @@ def processor(args, seq2seq, tokenizer, isOpenAI):
 	return processor
 
 class OpenAITokenizer: # Wrapper class to make OpenAI tokenizer compatible
-	def __init__(self, name: str):
-		split = name.split(':', 1)
-		self.enc = tiktoken.encoding_for_model(split[0])
+	def __init__(self, name: str, legacy: bool):
+		if legacy:
+			split = name.split(':', 1)
+			self.enc = tiktoken.encoding_for_model(split[0])
+		else:
+			self.enc = tiktoken.encoding_for_model(name)
 
 		self.eos_token = "<|endoftext|>"
-		if len(split) > 1:
-			self.eos_token = " END" # Ft-models use " END" as eos_token (assuming OpenAI's default fine-tune format)
+		if legacy and len(split) > 1:
+			self.eos_token = " END" # Legacy ft-models use " END" as eos_token (assuming OpenAI's default fine-tune format)
 
 		eos_token_id = self.enc.encode(self.eos_token, allowed_special="all")
 		if len(eos_token_id) != 1:

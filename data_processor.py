@@ -138,8 +138,8 @@ def encode(tokenizer, max_encode_length: int, text: str, prefix_tokens = [], suf
 	if len(encoded) >= max_length:
 		print("	Warning: input length >= max encode length, prompt truncated")
 
-	if len(check_suffix_tokens) > 0 and encoded[-len(check_suffix_tokens):] != check_suffix_tokens:
-		suffix_tokens = check_suffix_tokens + suffix_tokens
+		if len(check_suffix_tokens) > 0 and encoded[-len(check_suffix_tokens):] != check_suffix_tokens:
+			suffix_tokens = check_suffix_tokens + suffix_tokens
 
 	encoded = prefix_tokens + encoded + suffix_tokens
 
