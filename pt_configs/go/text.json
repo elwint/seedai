@@ -1,5 +1,5 @@
 {
-	"prefix": "",
+	"prefix": "Generate a bug input.\n",
 	"suffix": "\nA bug input: \"",
 	"stop": "\n",
 	"multi_vals": false,
