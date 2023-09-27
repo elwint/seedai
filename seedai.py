@@ -53,6 +53,10 @@ def main():
 	decode_len = tokenizer.model_max_length-len(input_ids)
 	if args.type == TYPE_SEQ2SEQ:
 		decode_len = tokenizer.model_max_length
+
+	if args.gen_length != -1 and decode_len > args.gen_length:
+		decode_len = args.gen_length
+
 	generate_args['max_new_tokens'] = decode_len
 	print("	Max decode tokens:", decode_len)
 

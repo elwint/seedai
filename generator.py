@@ -104,7 +104,7 @@ class HFGenerator:
 			stopping_criteria=stopping_criteria_list,
 			eos_token_id=self.stop_token_id,
 		):
-			output = output[-stopping_criteria.generated:] # Trim input from output
+			output = output[-stopping_criteria.generated-1:] # Trim input from output
 			output = output[output != self.stop_token_id] # Remove stop token
 			yield self.tokenizer.decode(output, skip_special_tokens=True)
 
@@ -127,6 +127,7 @@ class StopTokenCriteria(StoppingCriteria):
 		if stop:
 			print('S', end='', flush=True) # Reached stop/eos token
 			if len(self.reached_stop_token) == len(input_ids):
+				self.generated -= 1 # Do not include final stop token in generation count (like eos)
 				return True # Stop generate on either stop token or eos token
 		else:
 			print('.', end='', flush=True)

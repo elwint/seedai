@@ -37,6 +37,9 @@ def parse_args():
 	parser.add_argument("--length", "-l", type=int, default=-1,
 					 help="model max length. Default is tokenizer.model_max_length.")
 
+	parser.add_argument("--gen-length", "-g", type=int, default=-1,
+					 help="max seed generation length. Default is model max length - encode length.")
+
 	parser.add_argument("--prompt-tuning", "-pt", default=default_prompt_tuning,
 					 help=f"enable prompt tuning config json file. Default is {default_prompt_tuning}.")
 
@@ -63,7 +66,7 @@ def parse_args():
 					 help=f"print debug output to debug.out. Default is {default_debug}.")
 
 	parser.add_argument("--device-map", default=default_device_map,
-					 help=f"HuggingFace device_map. Default is {default_device_map}.")
+					 help=f"HuggingFace device_map. Default is '{default_device_map}'.")
 
 	args = parser.parse_args()
 	if args.type not in [TYPE_CAUSAL, TYPE_SEQ2SEQ]:

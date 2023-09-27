@@ -47,8 +47,8 @@ class FineTuneProcessor:
 		return input_ids, [] # Leave system empty
 
 	def stop_token(self):
-		return self.tokenizer.eos_token
-		# return '\n' # For testing
+		# return self.tokenizer.eos_token
+		return '\n' # Workaround FT
 
 	def extract(self, output: str) -> list[str]:
 		if len(output) > 0:
