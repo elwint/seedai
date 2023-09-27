@@ -18,6 +18,7 @@ def parse_args():
 	default_corpus = "corpus"
 	default_split = "\n\n###\n\n"
 	default_debug = False
+	default_device_map = "auto"
 
 	parser = argparse.ArgumentParser(description="TODO.")
 
@@ -60,6 +61,9 @@ def parse_args():
 
 	parser.add_argument("--debug", "--verbose", "-v", action="store_true", default=default_debug,
 					 help=f"print debug output to debug.out. Default is {default_debug}.")
+
+	parser.add_argument("--device-map", default=default_device_map,
+					 help=f"HuggingFace device_map. Default is {default_device_map}.")
 
 	args = parser.parse_args()
 	if args.type not in [TYPE_CAUSAL, TYPE_SEQ2SEQ]:

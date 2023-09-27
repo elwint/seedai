@@ -107,7 +107,7 @@ class PromptTuneProcessor:
 		if len(output) == 0:
 			return []
 
-		if self.start_with_string:
+		if self.start_with_string and output[0] != self.start_with_string:
 			output = self.start_with_string + output
 
 		seeds = []
