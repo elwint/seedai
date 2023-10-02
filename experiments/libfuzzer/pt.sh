@@ -9,6 +9,10 @@ if [ -z "$2" ]; then
 fi
 args="${@:2}"
 
+echo "Init ..."
+sh -c "cd ../../test && python3 ../seedai.py -v -p ../bin/goparser -n 1 -d /tmp -c ../configs/temp_0.8.json -g 1 $args" || exit 1
+echo "Running ..."
+
 for conf in ../../configs/*; do
   for pt_conf in ../../pt_configs/go/*.json; do
     params="-n 10"
@@ -17,3 +21,5 @@ for conf in ../../configs/*; do
       sh -c "cd source && python3 ../../../seedai.py -v -p ../../../bin/goparser $params -d ../corpus -c ../$conf -pt ../$pt_conf $args" || exit 1
   done
 done
+
+echo "Done ..."
