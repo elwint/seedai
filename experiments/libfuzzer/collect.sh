@@ -1,6 +1,11 @@
 #!/bin/bash
 set -o pipefail
 
+if [ -f "$1"/data.out ]; then
+  echo "Warning: $1/data.out already exists, skipping ..."
+  exit 0
+fi
+
 mkdir -p "$1" || exit 1
 
 rm -r corpus
