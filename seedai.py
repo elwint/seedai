@@ -103,7 +103,7 @@ def save_seeds(corpus_dir: str, seeds: list[str]) -> int:
 
 	for seed in seeds:
 		# Convert string to bytes
-		seed_bytes = seed.encode('utf-8')
+		seed_bytes = seed.encode('utf-8', 'surrogatepass')
 
 		# Calculate SHA1 hash of the bytes
 		sha1_hash = hashlib.sha1(seed_bytes).hexdigest()

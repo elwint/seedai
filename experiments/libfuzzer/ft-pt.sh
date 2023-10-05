@@ -20,7 +20,7 @@ for dir in source_*; do
   for i in {1..4}; do
     for conf in ../../configs/*; do
       bash ./collect.sh "$results"/ft/$(basename $conf)_$i \
-        sh -c "cd $dir && python3 ../../../seedai.py -v -p ../../../bin/goparser -n 10 -d ../corpus -c ../$conf -pt ../../../pt_configs/go/openai_ft/gpt-3.5-turbo.json $args" || exit 1
+        sh -c "cd $dir && python3 ../../../seedai.py -p ../../../bin/goparser -n 10 -g 230 -d ../corpus -c ../$conf -pt ../../../pt_configs/go/openai_ft/gpt-3.5-turbo.json $args" || exit 1
     done
   done
 done

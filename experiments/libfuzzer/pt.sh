@@ -19,10 +19,10 @@ for dir in source_*; do
 
   for conf in ../../configs/*; do
     for pt_conf in ../../pt_configs/go/*.json; do
-      params="-n 10"
-      [[ "$pt_conf" == *multi.json ]] && params="-n 2 -C 5"
+      params="-n 10 -g 200"
+      [[ "$pt_conf" == *multi.json ]] && params="-n 2 -C 5 -g 2000"
       bash ./collect.sh "$results"/pt/$(basename $conf)_$(basename $pt_conf) \
-        sh -c "cd $dir && python3 ../../../seedai.py -v -p ../../../bin/goparser $params -d ../corpus -c ../$conf -pt ../$pt_conf $args" || exit 1
+        sh -c "cd $dir && python3 ../../../seedai.py -p ../../../bin/goparser $params -d ../corpus -c ../$conf -pt ../$pt_conf $args" || exit 1
     done
   done
 done
