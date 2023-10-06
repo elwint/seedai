@@ -14,6 +14,7 @@ sh -c "cd ../../test && python3 ../seedai.py -v -p ../bin/goparser -n 1 -d /tmp 
 echo "Running ..."
 
 for dir in source_*; do
+  export SOURCE_DIR="$dir"
   folder_name_without_prefix="${dir#source_}"
   results="./results/$folder_name_without_prefix/$1"
 

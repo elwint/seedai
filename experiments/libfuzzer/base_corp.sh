@@ -1,5 +1,6 @@
 #!/bin/bash
 for dir in source_*; do
+  export SOURCE_DIR="$dir"
   folder_name_without_prefix="${dir#source_}"
   results="./results/$folder_name_without_prefix"
 
