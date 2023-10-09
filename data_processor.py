@@ -103,10 +103,11 @@ class PromptTuneProcessor:
 	def stop_token(self):
 		return self.stop
 
-	def extract(self, output: str) -> list[str]:
-		if len(output) == 0:
+	def extract(self, raw: str) -> list[str]:
+		if len(raw) == 0:
 			return []
 
+		output = raw
 		if self.start_with_string and output[0] != self.start_with_string:
 			output = self.start_with_string + output
 
@@ -124,7 +125,7 @@ class PromptTuneProcessor:
 					seeds.append(seed)
 
 		if len(seeds) == 0: # Make sure to always return something when extraction failed
-			output = parse_escaped(output)
+			output = parse_escaped(raw)
 			return [output]
 
 		return seeds
