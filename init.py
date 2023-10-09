@@ -19,16 +19,16 @@ def model(args, isOpenAI):
 		name_or_path = base_name
 
 	config = AutoConfig.from_pretrained(name_or_path, trust_remote_code=True)
-	torch_dtype = None
+	torch_dtype = torch.float16
 	if config.torch_dtype == torch.float32:
 		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for float32 models (requires CUDA)
 
 	if args.type == TYPE_CAUSAL:
-		model = AutoModelForCausalLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map)
+		model = AutoModelForCausalLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map, low_cpu_mem_usage=True)
 	if args.type == TYPE_SEQ2SEQ:
-		model = AutoModelForSeq2SeqLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map)
+		model = AutoModelForSeq2SeqLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map, low_cpu_mem_usage=True)
 	if isLoRA:
-		model = PeftModel.from_pretrained(model, args.model, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map)
+		model = PeftModel.from_pretrained(model, args.model, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map, low_cpu_mem_usage=True)
 		model = model.merge_and_unload()
 
 	device = "cuda:0" if torch.cuda.is_available() else "cpu"
