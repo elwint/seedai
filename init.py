@@ -81,9 +81,9 @@ def get_model_base_name(name_or_path: str) -> str:
 		return name_or_path, False
 
 def processor(args, seq2seq, tokenizer, isOpenAI):
-	if args.type == TYPE_CAUSAL: # TODO: Get this info from model?
-		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation
-	if args.type == TYPE_SEQ2SEQ:
+	if args.type == TYPE_CAUSAL or seq2seq == "codet5p": # Big codet5+ uses input in ouput (except ft)
+		max_encode_length = int(tokenizer.model_max_length*.75) # reserve 1/4 of model max length for generation (TODO: should depend on args.gen_length if set)
+	elif args.type == TYPE_SEQ2SEQ:
 		max_encode_length = tokenizer.model_max_length
 	if isOpenAI and not args.legacy:
 		max_encode_length -= 11 # OpenAI uses 11 extra tokens for role (system, user) input

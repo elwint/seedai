@@ -29,7 +29,7 @@ def main():
 	processor = init.processor(args, seq2seq, tokenizer, isOpenAI)
 
 	total_max_length = tokenizer.model_max_length
-	if args.type == TYPE_SEQ2SEQ:
+	if args.type == TYPE_SEQ2SEQ and seq2seq != "codet5p": # Big codet5+ uses input in ouput (except ft)
 		total_max_length = 2*tokenizer.model_max_length
 	print("	Model total max tokens:", total_max_length)
 	print("	Max encode tokens:", processor.max_encode_length)
@@ -51,7 +51,7 @@ def main():
 	print("	Encoded tokens:", len(input_ids))
 
 	decode_len = tokenizer.model_max_length-len(input_ids)
-	if args.type == TYPE_SEQ2SEQ:
+	if args.type == TYPE_SEQ2SEQ and seq2seq != "codet5p":
 		decode_len = tokenizer.model_max_length
 
 	if args.gen_length != -1 and decode_len > args.gen_length:
