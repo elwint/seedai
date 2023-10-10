@@ -10,6 +10,9 @@ done
 
 for source in clean_html iban saml; do # In this order (saml/deflate last)
   for dir in ./results/$source/*/*/*; do
+    if [ ! -d "$dir" ] || [[ $dir == *"/base"* ]]; then
+      continue
+    fi
     echo "In: $dir"
     if [ -f "$dir"/cov.out ]; then
       echo "Warning: $dir/cov.out already exists, skipping ..."
