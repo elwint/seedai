@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"git.ultraware.nl/elwin/scparser"
+	"github.com/elwint/scparser"
 )
 
 func main() {

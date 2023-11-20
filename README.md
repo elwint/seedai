@@ -6,7 +6,7 @@ Note that the number of simultaneous model executions is equal to `max(n, num_be
 
 Known limitations:
 
-- [Go source code parser](https://git.ultraware.nl/elwin/scparser)
+- [Go source code parser](https://github.com/elwint/scparser)
 
 ## Generation config example
 
