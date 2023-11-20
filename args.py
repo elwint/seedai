@@ -49,7 +49,7 @@ def parse_args():
 	parser.add_argument("--legacy", "-L", action="store_true", default=default_legacy,
 					 help=f"enable legacy support (OpenAI). Default is {default_legacy}.")
 
-	parser.add_argument("-n", type=int, default=-1,
+	parser.add_argument("-n", type=int, default=default_n,
 					 help=f"number of model return sequences. Default is {default_n}.")
 
 	parser.add_argument("--func", "-f", default=default_func,
