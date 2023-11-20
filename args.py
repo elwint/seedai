@@ -20,7 +20,7 @@ def parse_args():
 	default_debug = False
 	default_device_map = "auto"
 
-	parser = argparse.ArgumentParser(description="TODO.")
+	parser = argparse.ArgumentParser()
 
 	parser.add_argument("--config", "-c", required=True,
 					 help="generate config json file.")
