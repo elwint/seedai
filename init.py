@@ -18,10 +18,14 @@ def model(args, isOpenAI):
 	if isLoRA:
 		name_or_path = base_name
 
+	device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
 	config = AutoConfig.from_pretrained(name_or_path, trust_remote_code=True)
-	torch_dtype = torch.float16
-	if config.torch_dtype == torch.float32:
-		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for float32 models (requires CUDA)
+	torch_dtype = None
+	if device == "cuda:0":
+		torch_dtype = torch.bfloat16 # Use half-precision bfloat16 for non-fp16 models (requires CUDA)
+		if config.torch_dtype == torch.float16:
+			torch_dtype = torch.float16
 
 	if args.type == TYPE_CAUSAL:
 		model = AutoModelForCausalLM.from_pretrained(name_or_path, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map, low_cpu_mem_usage=True)
@@ -31,7 +35,6 @@ def model(args, isOpenAI):
 		model = PeftModel.from_pretrained(model, args.model, torch_dtype=torch_dtype, trust_remote_code=True, device_map=args.device_map, low_cpu_mem_usage=True)
 		model = model.merge_and_unload()
 
-	device = "cuda:0" if torch.cuda.is_available() else "cpu"
 	return model.to(device)
 
 def tokenizer(args):
